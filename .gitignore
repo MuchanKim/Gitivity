@@ -1,0 +1,52 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserdata/
+*.xcworkspace/xcuserdata/
+xcuserdata/
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+Packages/
+Package.pins
+Package.resolved
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+
+# CocoaPods (if used)
+Pods/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# OS
+.DS_Store
+*.swp
+*~
+._*
+Thumbs.db
+
+# AI Agent / Prompt files
+.claude/
+.cursor/
+.copilot/
+.github/copilot/
+.aider*
+.continue/
+prompts/
+.prompts/
+ai-prompts/
+.gemini/
+
+# Secrets
+*.env
+.env.*
+secrets/
