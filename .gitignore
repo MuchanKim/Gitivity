@@ -35,6 +35,7 @@ fastlane/test_output
 Thumbs.db
 
 # AI Agent / Prompt files
+CLAUDE.md
 .claude/
 .cursor/
 .copilot/
@@ -45,6 +46,9 @@ prompts/
 .prompts/
 ai-prompts/
 .gemini/
+GEMINI.md
+AGENTS.md
+docs/superpowers/
 
 # Secrets
 *.env
