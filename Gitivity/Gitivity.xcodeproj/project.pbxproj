@@ -33,6 +33,7 @@
 		D1BC4A252F72381500A95ED5 /* Exceptions for "Gitivity" folder in "Gitivity" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Resources/Info.plist,
 				Tests/GitivityTests/AuthServiceTests.swift,
 				Tests/GitivityTests/KeychainServiceTests.swift,
 				Tests/GitivityUITests/GitivityUITests.swift,
@@ -416,6 +417,7 @@
 				DEVELOPMENT_TEAM = F7T7NU8578;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Gitivity/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -451,6 +453,7 @@
 				DEVELOPMENT_TEAM = F7T7NU8578;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Gitivity/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
