@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @Environment(AuthViewModel.self) private var authViewModel
+
     var body: some View {
         NavigationStack {
             Form {
@@ -13,7 +15,9 @@ struct SettingsView: View {
                 }
 
                 Section("계정") {
-                    Text("GitHub 계정 관리")
+                    Button("로그아웃", role: .destructive) {
+                        Task { await authViewModel.signOut() }
+                    }
                 }
             }
             .navigationTitle("설정")
@@ -23,4 +27,5 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
+        .environment(AuthViewModel())
 }
