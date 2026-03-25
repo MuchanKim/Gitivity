@@ -33,6 +33,7 @@
 		D1BC4A252F72381500A95ED5 /* Exceptions for "Gitivity" folder in "Gitivity" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Tests/GitivityTests/AuthServiceTests.swift,
 				Tests/GitivityTests/KeychainServiceTests.swift,
 				Tests/GitivityUITests/GitivityUITests.swift,
 				Tests/GitivityUITests/GitivityUITestsLaunchTests.swift,
@@ -42,6 +43,7 @@
 		D1BC4A262F72381500A95ED5 /* Exceptions for "Gitivity" folder in "GitivityTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Tests/GitivityTests/AuthServiceTests.swift,
 				Tests/GitivityTests/KeychainServiceTests.swift,
 			);
 			target = D1BC49FC2F7237A200A95ED5 /* GitivityTests */;

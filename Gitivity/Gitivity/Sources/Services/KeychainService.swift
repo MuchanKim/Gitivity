@@ -1,9 +1,10 @@
 import Foundation
-@preconcurrency import Security
+import Security
 
 struct KeychainService: Sendable {
     private let serviceName = "com.moo.Gitivity"
 
+    @MainActor
     func save(key: String, value: String) throws {
         let data = Data(value.utf8)
         let query: [String: Any] = [
@@ -19,6 +20,7 @@ struct KeychainService: Sendable {
         }
     }
 
+    @MainActor
     func read(key: String) throws -> String? {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -36,6 +38,7 @@ struct KeychainService: Sendable {
         return String(data: data, encoding: .utf8)
     }
 
+    @MainActor
     func delete(key: String) throws {
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
