@@ -16,7 +16,7 @@ struct SettingsView: View {
 
                 Section("계정") {
                     Button("로그아웃", role: .destructive) {
-                        Task { await authViewModel.signOut() }
+                        authViewModel.signOut()
                     }
                 }
             }

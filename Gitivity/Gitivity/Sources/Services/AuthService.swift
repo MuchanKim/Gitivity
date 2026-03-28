@@ -76,7 +76,10 @@ final class AuthService {
     }
 
     private func exchangeCodeForToken(_ code: String) async throws -> String {
-        var request = URLRequest(url: URL(string: "\(proxyBaseURL)/token")!)
+        guard let url = URL(string: "\(proxyBaseURL)/token") else {
+            throw AuthError.tokenExchangeFailed
+        }
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(["code": code])
@@ -114,10 +117,13 @@ private struct TokenResponse: Decodable {
 @MainActor
 private final class AuthPresentationContext: NSObject, ASWebAuthenticationPresentationContextProviding {
     func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
-        guard let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
-              let window = scene.windows.first(where: \.isKeyWindow) else {
-            return ASPresentationAnchor()
-        }
-        return window
+        let scene = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive }
+            ?? UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first!
+
+        return scene.windows.first(where: \.isKeyWindow) ?? UIWindow(windowScene: scene)
     }
 }
