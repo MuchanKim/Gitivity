@@ -27,20 +27,26 @@ struct OnboardingView: View {
                 HStack(spacing: 8) {
                     if authViewModel.isLoading {
                         ProgressView()
+                            .tint(.white)
                     }
                     Text("GitHub로 로그인")
+                        .fontWeight(.semibold)
                 }
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, 4)
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
+            .tint(.black)
             .disabled(authViewModel.isLoading)
 
             if let error = authViewModel.error {
                 Text(error)
                     .font(.caption)
                     .foregroundStyle(.red)
+                    .padding(.top, 4)
             }
+
 
             Spacer()
                 .frame(height: 40)

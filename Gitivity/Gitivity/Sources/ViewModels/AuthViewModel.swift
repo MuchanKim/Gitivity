@@ -10,12 +10,8 @@ final class AuthViewModel {
     private let authService = AuthService()
 
     init() {
-        Task { await checkExistingToken() }
-    }
-
-    func checkExistingToken() async {
-        await authService.checkExistingToken()
-        isAuthenticated = await authService.isAuthenticated
+        authService.checkExistingToken()
+        isAuthenticated = authService.isAuthenticated
     }
 
     func signIn() async {
@@ -30,9 +26,9 @@ final class AuthViewModel {
         isLoading = false
     }
 
-    func signOut() async {
+    func signOut() {
         do {
-            try await authService.signOut()
+            try authService.signOut()
         } catch {
             // signOut 실패는 무시
         }

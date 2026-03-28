@@ -1,30 +1,46 @@
 import AuthenticationServices
 import Foundation
+import UIKit
 
-actor AuthService {
-    private let clientID = "PLACEHOLDER_CLIENT_ID"
-    private let proxyBaseURL = "PLACEHOLDER_PROXY_URL"
+@MainActor
+final class AuthService {
+    private let clientID: String
+    private let proxyBaseURL: String
     private let keychain = KeychainService()
+
+    private var authSession: ASWebAuthenticationSession?
+    private let contextProvider = AuthPresentationContext()
+
+    init() {
+        guard let clientID = Bundle.main.object(forInfoDictionaryKey: "GitHubClientID") as? String,
+              !clientID.isEmpty,
+              let proxyURL = Bundle.main.object(forInfoDictionaryKey: "OAuthProxyURL") as? String,
+              !proxyURL.isEmpty else {
+            fatalError("Secrets.xcconfig이 설정되지 않았습니다. Secrets.template.xcconfig를 참고하세요.")
+        }
+        self.clientID = clientID
+        self.proxyBaseURL = proxyURL
+    }
 
     private(set) var isAuthenticated = false
 
-    func checkExistingToken() async {
-        isAuthenticated = await (try? keychain.read(key: "github_token")) != nil
+    func checkExistingToken() {
+        isAuthenticated = (try? keychain.read(key: "github_token")) != nil
     }
 
     func startOAuth() async throws {
         let code = try await requestAuthorizationCode()
         let token = try await exchangeCodeForToken(code)
-        try await keychain.save(key: "github_token", value: token)
+        try keychain.save(key: "github_token", value: token)
         isAuthenticated = true
     }
 
-    func loadToken() async -> String? {
-        await (try? keychain.read(key: "github_token"))
+    func loadToken() -> String? {
+        try? keychain.read(key: "github_token")
     }
 
-    func signOut() async throws {
-        try await keychain.delete(key: "github_token")
+    func signOut() throws {
+        try keychain.delete(key: "github_token")
         isAuthenticated = false
     }
 
@@ -37,7 +53,9 @@ actor AuthService {
             let session = ASWebAuthenticationSession(
                 url: authURL,
                 callback: .customScheme("gitivity")
-            ) { callbackURL, error in
+            ) { [weak self] callbackURL, error in
+                self?.authSession = nil
+
                 if let error {
                     continuation.resume(throwing: error)
                     return
@@ -51,15 +69,13 @@ actor AuthService {
                 continuation.resume(returning: code)
             }
             session.prefersEphemeralWebBrowserSession = true
+            session.presentationContextProvider = self.contextProvider
+            self.authSession = session
             session.start()
         }
     }
 
     private func exchangeCodeForToken(_ code: String) async throws -> String {
-        guard proxyBaseURL != "PLACEHOLDER_PROXY_URL" else {
-            throw AuthError.proxyNotConfigured
-        }
-
         var request = URLRequest(url: URL(string: "\(proxyBaseURL)/token")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -79,20 +95,29 @@ actor AuthService {
 enum AuthError: LocalizedError {
     case noCode
     case tokenExchangeFailed
-    case proxyNotConfigured
 
     var errorDescription: String? {
         switch self {
         case .noCode: "GitHub에서 인증 코드를 받지 못했습니다."
         case .tokenExchangeFailed: "토큰 교환에 실패했습니다."
-        case .proxyNotConfigured: "OAuth 프록시 서버가 설정되지 않았습니다."
         }
     }
 }
 
-private nonisolated struct TokenResponse: Decodable {
+private struct TokenResponse: Decodable {
     let accessToken: String
     enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
+    }
+}
+
+@MainActor
+private final class AuthPresentationContext: NSObject, ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        guard let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+              let window = scene.windows.first(where: \.isKeyWindow) else {
+            return ASPresentationAnchor()
+        }
+        return window
     }
 }
