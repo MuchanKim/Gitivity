@@ -1,10 +1,3 @@
-//
-//  GitivityApp.swift
-//  Gitivity
-//
-//  Created by Muchan Kim on 3/24/26.
-//
-
 import SwiftUI
 
 @main
@@ -15,8 +8,10 @@ struct GitivityApp: App {
         WindowGroup {
             if authViewModel.isAuthenticated {
                 MainTabView()
+                    .environment(authViewModel)
             } else {
                 OnboardingView()
+                    .environment(authViewModel)
             }
         }
     }
