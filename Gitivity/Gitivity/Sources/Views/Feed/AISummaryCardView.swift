@@ -12,16 +12,16 @@ struct AISummaryCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("✦ AI 요약")
-                .font(.system(size: 8, weight: .bold))
+                .font(AppTheme.Fonts.label)
                 .foregroundStyle(AppTheme.Colors.aiLabel)
                 .tracking(0.5)
             Text(summary)
-                .font(.system(size: 11))
+                .font(AppTheme.Fonts.cardBody)
                 .foregroundStyle(AppTheme.Colors.textSecondary)
                 .lineSpacing(4)
             if showDisclaimer {
                 Text("AI가 생성한 요약입니다")
-                    .font(.system(size: 7))
+                    .font(AppTheme.Fonts.caption)
                     .foregroundStyle(AppTheme.Colors.textMeta)
                     .padding(.top, 4)
             }
