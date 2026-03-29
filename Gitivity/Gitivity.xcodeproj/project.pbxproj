@@ -36,6 +36,7 @@
 			membershipExceptions = (
 				Resources/Info.plist,
 				Tests/GitivityTests/AuthServiceTests.swift,
+				Tests/GitivityTests/CommitClassifierTests.swift,
 				Tests/GitivityTests/KeychainServiceTests.swift,
 				Tests/GitivityUITests/GitivityUITests.swift,
 				Tests/GitivityUITests/GitivityUITestsLaunchTests.swift,
@@ -46,6 +47,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Tests/GitivityTests/AuthServiceTests.swift,
+				Tests/GitivityTests/CommitClassifierTests.swift,
 				Tests/GitivityTests/KeychainServiceTests.swift,
 			);
 			target = D1BC49FC2F7237A200A95ED5 /* GitivityTests */;

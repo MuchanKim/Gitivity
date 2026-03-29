@@ -2,6 +2,7 @@ import Testing
 @testable import Gitivity
 
 @Suite("AuthService Tests")
+@MainActor
 struct AuthServiceTests {
 
     @Test("초기 상태 - 토큰 없으면 미인증")

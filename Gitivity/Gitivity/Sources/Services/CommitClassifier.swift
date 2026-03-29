@@ -2,7 +2,12 @@ import Foundation
 import FoundationModels
 
 struct CommitClassifier: Sendable {
-    /// Conventional commits prefix로 분류 시도, 실패 시 AI 분류
+    private let aiProvider: AIProvider
+
+    init(aiProvider: AIProvider = FoundationProvider()) {
+        self.aiProvider = aiProvider
+    }
+
     func classify(_ message: String) async -> CommitCategory {
         if let category = classifyByPrefix(message) {
             return category
@@ -10,7 +15,6 @@ struct CommitClassifier: Sendable {
         return await classifyByAI(message)
     }
 
-    /// 여러 커밋 메시지를 한번에 분류
     func classifyBatch(_ messages: [String]) async -> [CommitCategory] {
         await withTaskGroup(of: (Int, CommitCategory).self) { group in
             for (index, message) in messages.enumerated() {
@@ -46,13 +50,13 @@ struct CommitClassifier: Sendable {
     }
 
     private func classifyByAI(_ message: String) async -> CommitCategory {
-        guard SystemLanguageModel.default.availability == .available else {
+        guard aiProvider.availabilityStatus == .available else {
             return .chore
         }
         do {
-            let session = LanguageModelSession {
-                "Classify this git commit message into one category: feat, fix, refactor, style, chore, docs, or test. Respond with only the category."
-            }
+            let session = LanguageModelSession(
+                instructions: "Classify this git commit message into one category: feat, fix, refactor, style, chore, docs, or test. Respond with only the category."
+            )
             let response = try await session.respond(to: message, generating: CommitCategory.self)
             return response.content
         } catch {
