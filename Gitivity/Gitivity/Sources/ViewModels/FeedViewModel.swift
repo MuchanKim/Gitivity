@@ -6,9 +6,6 @@ final class FeedViewModel {
     private(set) var isLoading = false
     var error: String?
 
-    // MARK: - Legacy (Task 11에서 FeedView와 함께 삭제)
-    var feedItems: [FeedItem] { [] }
-
     private let keychain = KeychainService()
     private let groupingService = FeedGroupingService()
     private let promptBuilder = PromptBuilder()
