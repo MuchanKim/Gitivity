@@ -1,4 +1,5 @@
 import SwiftUI
+import FoundationModels
 
 @main
 struct GitivityApp: App {
@@ -6,13 +7,16 @@ struct GitivityApp: App {
 
     var body: some Scene {
         WindowGroup {
-            if authViewModel.isAuthenticated {
-                MainTabView()
-                    .environment(authViewModel)
-            } else {
-                OnboardingView()
-                    .environment(authViewModel)
+            Group {
+                if !authViewModel.isAuthenticated {
+                    OnboardingPageView()
+                } else if SystemLanguageModel.default.availability != .available {
+                    AIUnavailableView()
+                } else {
+                    MainTabView()
+                }
             }
+            .environment(authViewModel)
         }
     }
 }

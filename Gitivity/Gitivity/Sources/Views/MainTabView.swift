@@ -3,21 +3,14 @@ import SwiftUI
 struct MainTabView: View {
     var body: some View {
         TabView {
-            Tab("피드", systemImage: "list.bullet") {
-                FeedView()
+            Tab("피드", systemImage: "list.clipboard") {
+                ActivityFeedView()
             }
 
-            Tab("요약", systemImage: "chart.bar") {
-                SummaryView()
-            }
-
-            Tab("설정", systemImage: "gearshape") {
-                SettingsView()
+            Tab("프로필", systemImage: "person") {
+                ProfileView()
             }
         }
+        .preferredColorScheme(.dark)
     }
-}
-
-#Preview {
-    MainTabView()
 }
