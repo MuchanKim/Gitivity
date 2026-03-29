@@ -1,20 +1,37 @@
 import Foundation
 
 @Observable
+@MainActor
 final class AuthViewModel {
+    private(set) var isAuthenticated = false
+    private(set) var isLoading = false
+    var error: String?
+
     private let authService = AuthService()
 
-    var isAuthenticated: Bool { authService.isAuthenticated }
+    init() {
+        authService.checkExistingToken()
+        isAuthenticated = authService.isAuthenticated
+    }
 
     func signIn() async {
+        isLoading = true
+        error = nil
         do {
-            try await authService.signInWithGitHub()
+            try await authService.startOAuth()
+            isAuthenticated = true
         } catch {
-            // TODO: 에러 처리
+            self.error = error.localizedDescription
         }
+        isLoading = false
     }
 
     func signOut() {
-        authService.signOut()
+        do {
+            try authService.signOut()
+        } catch {
+            // signOut 실패는 무시
+        }
+        isAuthenticated = false
     }
 }
