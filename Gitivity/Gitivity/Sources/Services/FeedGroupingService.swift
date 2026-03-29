@@ -1,61 +1,38 @@
 import Foundation
 
 struct FeedGroupingService: Sendable {
-    func groupIntoFeedItems(
+    func groupIntoTimeline(
         pullRequests: [PullRequest],
         commits: [Commit],
         issues: [Issue]
-    ) -> [FeedItem] {
-        var items: [FeedItem] = []
+    ) -> [TimelineItem] {
+        let allRepos = Set(
+            pullRequests.map(\.repositoryName) +
+            commits.map(\.repositoryName)
+        )
 
-        for pr in pullRequests {
-            items.append(FeedItem(
-                id: pr.id,
-                type: .pullRequest,
-                title: pr.title,
-                repositoryName: pr.repositoryName,
-                timestamp: pr.createdAt,
-                additions: pr.additions,
-                deletions: pr.deletions,
-                commits: [],
-                aiSummary: nil
-            ))
+        return allRepos.map { repoName in
+            let repoPRs = pullRequests.filter { $0.repositoryName == repoName }
+            let repoCommits = commits.filter { $0.repositoryName == repoName }
+
+            let latestDate = ([repoPRs.map(\.createdAt), repoCommits.map(\.committedDate)]
+                .flatMap { $0 })
+                .max() ?? Date.distantPast
+
+            let parts = repoName.split(separator: "/")
+            let owner = parts.count > 1 ? String(parts[0]) : ""
+
+            return TimelineItem(
+                id: repoName,
+                repositoryName: repoName,
+                repositoryOwner: owner,
+                lastActivityDate: latestDate,
+                pullRequests: repoPRs,
+                commits: repoCommits,
+                aiSummary: nil,
+                categoryDistribution: [:]
+            )
         }
-
-        for issue in issues {
-            items.append(FeedItem(
-                id: issue.id,
-                type: .issue,
-                title: issue.title,
-                repositoryName: issue.repositoryName,
-                timestamp: issue.createdAt,
-                additions: 0,
-                deletions: 0,
-                commits: [],
-                aiSummary: nil
-            ))
-        }
-
-        let commitsByRepo = Dictionary(grouping: commits) { $0.repositoryName }
-        for (repo, repoCommits) in commitsByRepo {
-            let sorted = repoCommits.sorted { $0.committedDate > $1.committedDate }
-            let totalAdditions = sorted.reduce(0) { $0 + $1.additions }
-            let totalDeletions = sorted.reduce(0) { $0 + $1.deletions }
-            guard let latest = sorted.first else { continue }
-
-            items.append(FeedItem(
-                id: "push-\(repo)-\(latest.id)",
-                type: .push,
-                title: "\(sorted.count)개의 커밋 — \(repo)",
-                repositoryName: repo,
-                timestamp: latest.committedDate,
-                additions: totalAdditions,
-                deletions: totalDeletions,
-                commits: sorted,
-                aiSummary: nil
-            ))
-        }
-
-        return items.sorted { $0.timestamp > $1.timestamp }
+        .sorted { $0.lastActivityDate > $1.lastActivityDate }
     }
 }
