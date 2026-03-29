@@ -1,6 +1,14 @@
 import Foundation
 
-struct FeedItem: Sendable, Identifiable {
+struct FeedItem: Sendable, Identifiable, Hashable {
+    static func == (lhs: FeedItem, rhs: FeedItem) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
     let id: String
     let type: FeedItemType
     let title: String
