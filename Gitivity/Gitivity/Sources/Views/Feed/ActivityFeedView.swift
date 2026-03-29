@@ -22,7 +22,7 @@ struct ActivityFeedView: View {
             .background(AppTheme.Colors.background)
             .navigationTitle("활동")
             .navigationDestination(for: TimelineItem.self) { item in
-                Text("레포 상세: \(item.repositoryName)")
+                RepoDetailView(item: item)
             }
             .overlay {
                 if viewModel.isLoading && viewModel.timelineItems.isEmpty {
