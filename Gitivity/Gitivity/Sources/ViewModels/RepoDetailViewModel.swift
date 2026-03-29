@@ -8,7 +8,7 @@ final class RepoDetailViewModel {
     private(set) var isLoading = false
 
     private let promptBuilder = ActivityPromptBuilder()
-    private let classifier = CommitClassifier()
+    private let classifier = CommitClassifier(aiProvider: FoundationProvider())
 
     func load(from timelineItem: TimelineItem) async {
         isLoading = true

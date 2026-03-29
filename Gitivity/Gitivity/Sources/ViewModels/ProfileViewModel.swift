@@ -11,7 +11,7 @@ final class ProfileViewModel {
     private(set) var isLoading = false
 
     private let keychain = KeychainService()
-    private let classifier = CommitClassifier()
+    private let classifier = CommitClassifier(aiProvider: FoundationProvider())
 
     func load() async {
         isLoading = true
