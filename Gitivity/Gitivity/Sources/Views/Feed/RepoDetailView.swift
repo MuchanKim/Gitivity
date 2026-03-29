@@ -9,7 +9,7 @@ struct RepoDetailView: View {
             VStack(spacing: 16) {
                 // Repo header (center aligned)
                 VStack(spacing: 4) {
-                    Text(item.repositoryName.components(separatedBy: "/").last ?? item.repositoryName)
+                    Text(item.shortRepoName)
                         .font(.system(size: 24, weight: .heavy))
                         .foregroundStyle(AppTheme.Colors.textPrimary)
                     Text(item.repositoryName)

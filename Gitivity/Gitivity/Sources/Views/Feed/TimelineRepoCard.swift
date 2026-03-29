@@ -45,7 +45,7 @@ struct TimelineRepoCard: View {
 
     private var headerRow: some View {
         HStack {
-            Text(repoShortName)
+            Text(item.shortRepoName)
                 .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(AppTheme.Colors.textPrimary)
             Spacer()
@@ -106,10 +106,6 @@ struct TimelineRepoCard: View {
     }
 
     // MARK: - Helpers
-
-    private var repoShortName: String {
-        item.repositoryName.components(separatedBy: "/").last ?? item.repositoryName
-    }
 
     private var dotColor: Color {
         let hash = abs(item.repositoryName.hashValue)
