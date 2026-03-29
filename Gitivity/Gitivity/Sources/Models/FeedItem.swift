@@ -1,14 +1,6 @@
 import Foundation
 
 struct FeedItem: Sendable, Identifiable, Hashable {
-    static func == (lhs: FeedItem, rhs: FeedItem) -> Bool {
-        lhs.id == rhs.id
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-
     let id: String
     let type: FeedItemType
     let title: String
@@ -18,6 +10,14 @@ struct FeedItem: Sendable, Identifiable, Hashable {
     let deletions: Int
     let commits: [Commit]
     let aiSummary: String?
+
+    static func == (lhs: FeedItem, rhs: FeedItem) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
 }
 
 enum FeedItemType: Sendable {

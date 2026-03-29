@@ -3,6 +3,9 @@ import Foundation
 struct GitHubGraphQLService: Sendable {
     let accessToken: String
 
+    private static let repoFetchLimit = 10
+    private static let commitPerRepoLimit = 10
+
     // MARK: - Viewer
 
     func fetchViewer() async throws -> GitHubUser {
@@ -12,8 +15,8 @@ struct GitHubGraphQLService: Sendable {
         }
         """
         let result: ViewerResponse = try await execute(query: query)
-        let v = result.viewer
-        return GitHubUser(login: v.login, name: v.name, avatarURL: v.avatarUrl)
+        let viewer = result.viewer
+        return GitHubUser(login: viewer.login, name: viewer.name, avatarURL: viewer.avatarUrl)
     }
 
     // MARK: - Contributions
@@ -112,9 +115,6 @@ struct GitHubGraphQLService: Sendable {
     }
 
     // MARK: - Commits
-
-    private static let repoFetchLimit = 10
-    private static let commitPerRepoLimit = 10
 
     func fetchCommits(limit: Int = 20) async throws -> [Commit] {
         let query = """
