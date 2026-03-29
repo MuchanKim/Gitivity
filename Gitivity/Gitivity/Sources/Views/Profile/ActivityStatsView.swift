@@ -14,16 +14,16 @@ struct ActivityStatsView: View {
     }
 
     private func statBox(value: String, label: String, color: Color) -> some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 4) {
             Text(value)
-                .font(.system(size: 22, weight: .bold))
+                .font(AppTheme.Fonts.statNumber)
                 .foregroundStyle(color)
             Text(label)
-                .font(.system(size: 9))
+                .font(AppTheme.Fonts.stats)
                 .foregroundStyle(AppTheme.Colors.textTertiary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
+        .padding(.vertical, 14)
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(

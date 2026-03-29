@@ -15,7 +15,7 @@ struct SettingsView: View {
                     Text("Foundation")
                         .foregroundStyle(AppTheme.Colors.textSecondary)
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 12))
+                        .font(AppTheme.Fonts.stats)
                         .foregroundStyle(AppTheme.Colors.textMeta)
                 }
             } header: {
@@ -29,7 +29,7 @@ struct SettingsView: View {
                     Text("개인정보 처리방침")
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 12))
+                        .font(AppTheme.Fonts.stats)
                         .foregroundStyle(AppTheme.Colors.textMeta)
                 }
 
@@ -89,7 +89,7 @@ struct SettingsView: View {
 
     private func settingsIcon(_ icon: String, background: Color, foreground: Color) -> some View {
         Text(icon)
-            .font(.system(size: 13))
+            .font(AppTheme.Fonts.timestamp)
             .frame(width: 28, height: 28)
             .background(background)
             .foregroundStyle(foreground)

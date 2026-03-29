@@ -36,7 +36,7 @@ struct OnboardingPageView: View {
                         Button("건너뛰기") {
                             withAnimation { currentPage = 2 }
                         }
-                        .font(.system(size: 14))
+                        .font(AppTheme.Fonts.skipButton)
                         .foregroundStyle(AppTheme.Colors.primary)
                         .padding(.trailing, 20)
                     }
@@ -51,13 +51,13 @@ struct OnboardingPageView: View {
         VStack(spacing: 16) {
             Spacer()
             Text(icon)
-                .font(.system(size: 44))
+                .font(AppTheme.Fonts.onboardingIcon)
             Text(title)
-                .font(.system(size: 24, weight: .heavy))
+                .font(AppTheme.Fonts.onboardingTitle)
                 .foregroundStyle(.white)
                 .multilineTextAlignment(.center)
             Text(description)
-                .font(.system(size: 13))
+                .font(AppTheme.Fonts.onboardingBody)
                 .foregroundStyle(AppTheme.Colors.textSecondary)
                 .multilineTextAlignment(.center)
                 .lineSpacing(4)
@@ -71,12 +71,12 @@ struct OnboardingPageView: View {
         VStack(spacing: 16) {
             Spacer()
             Text("🔒")
-                .font(.system(size: 44))
+                .font(AppTheme.Fonts.onboardingIcon)
             Text("온디바이스 AI")
-                .font(.system(size: 24, weight: .heavy))
+                .font(AppTheme.Fonts.onboardingTitle)
                 .foregroundStyle(.white)
             Text("데이터가 기기를 떠나지 않습니다")
-                .font(.system(size: 13))
+                .font(AppTheme.Fonts.onboardingBody)
                 .foregroundStyle(AppTheme.Colors.textSecondary)
             Spacer()
 
@@ -105,7 +105,7 @@ struct OnboardingPageView: View {
             }
 
             Text("계속하면 개인정보 처리방침에 동의하는 것으로 간주됩니다.")
-                .font(.system(size: 9))
+                .font(AppTheme.Fonts.privacyNotice)
                 .foregroundStyle(AppTheme.Colors.textMeta)
                 .multilineTextAlignment(.center)
 
