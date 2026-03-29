@@ -1,5 +1,4 @@
 import SwiftUI
-import FoundationModels
 
 @main
 struct GitivityApp: App {
@@ -10,8 +9,6 @@ struct GitivityApp: App {
             Group {
                 if !authViewModel.isAuthenticated {
                     OnboardingPageView()
-                } else if SystemLanguageModel.default.availability != .available {
-                    AIUnavailableView()
                 } else {
                     MainTabView()
                 }
