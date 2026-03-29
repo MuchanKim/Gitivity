@@ -82,7 +82,7 @@ struct TimelineRepoCard: View {
             if item.prCount > 0 {
                 Text("PR **\(item.prCount)**")
             }
-            Text("커밋 **\(item.commitCount)**")
+            Text("\(StringLiterals.Stats.commits) **\(item.commitCount)**")
             Spacer()
             HStack(spacing: 4) {
                 Text("+\(item.totalAdditions)")

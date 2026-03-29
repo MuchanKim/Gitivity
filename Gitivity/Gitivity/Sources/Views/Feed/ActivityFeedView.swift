@@ -7,7 +7,7 @@ struct ActivityFeedView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("활동")
+                    Text(StringLiterals.Feed.title)
                         .font(AppTheme.Fonts.screenTitle)
                         .foregroundStyle(.white)
                         .padding(.horizontal, 18)
@@ -39,19 +39,19 @@ struct ActivityFeedView: View {
                         .tint(AppTheme.Colors.primary)
                 } else if let error = viewModel.error, viewModel.timelineItems.isEmpty {
                     ContentUnavailableView {
-                        Label("오류 발생", systemImage: "exclamationmark.triangle")
+                        Label(StringLiterals.Feed.errorOccurred, systemImage: "exclamationmark.triangle")
                     } description: {
                         Text(error)
                     } actions: {
-                        Button("다시 시도") {
+                        Button(StringLiterals.Feed.retry) {
                             Task { await viewModel.loadFeed() }
                         }
                     }
                 } else if viewModel.timelineItems.isEmpty && !viewModel.isLoading {
                     ContentUnavailableView(
-                        "활동 없음",
+                        StringLiterals.Feed.noActivity,
                         systemImage: "tray",
-                        description: Text("최근 GitHub 활동이 없습니다.")
+                        description: Text(StringLiterals.Feed.noActivityDescription)
                     )
                 }
             }

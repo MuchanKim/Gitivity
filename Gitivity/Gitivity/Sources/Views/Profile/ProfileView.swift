@@ -27,7 +27,7 @@ struct ProfileView: View {
 
     private var titleRow: some View {
         HStack {
-            Text("프로필")
+            Text(StringLiterals.Profile.title)
                 .font(AppTheme.Fonts.screenTitle)
                 .foregroundStyle(.white)
             Spacer()
@@ -84,7 +84,7 @@ struct ProfileView: View {
     private var activitySection: some View {
         if !viewModel.categoryDistribution.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
-                Text("활동 분류")
+                Text(StringLiterals.Profile.activityClassification)
                     .font(AppTheme.Fonts.sectionTitle)
                     .foregroundStyle(AppTheme.Colors.textSecondary)
                 ActivityBarView(

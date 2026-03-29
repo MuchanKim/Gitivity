@@ -11,7 +11,7 @@ struct AISummaryCardView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("✦ AI 요약")
+            Text(StringLiterals.AI.summaryLabel)
                 .font(AppTheme.Fonts.label)
                 .foregroundStyle(AppTheme.Colors.aiLabel)
                 .tracking(0.5)
@@ -20,7 +20,7 @@ struct AISummaryCardView: View {
                 .foregroundStyle(AppTheme.Colors.textSecondary)
                 .lineSpacing(4)
             if showDisclaimer {
-                Text("AI가 생성한 요약입니다")
+                Text(StringLiterals.AI.disclaimer)
                     .font(AppTheme.Fonts.caption)
                     .foregroundStyle(AppTheme.Colors.textMeta)
                     .padding(.top, 4)

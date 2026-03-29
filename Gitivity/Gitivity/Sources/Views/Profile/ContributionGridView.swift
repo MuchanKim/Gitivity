@@ -20,11 +20,11 @@ struct ContributionGridView: View {
 
     private var header: some View {
         HStack {
-            Text("기여 활동")
+            Text(StringLiterals.Profile.contributionActivity)
                 .font(AppTheme.Fonts.sectionTitle)
                 .foregroundStyle(AppTheme.Colors.textSecondary)
             Spacer()
-            Text("최근 30일")
+            Text(StringLiterals.Profile.last30Days)
                 .font(AppTheme.Fonts.stats)
                 .foregroundStyle(AppTheme.Colors.textMeta)
         }

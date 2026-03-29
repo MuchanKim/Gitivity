@@ -41,12 +41,12 @@ struct PRCardView: View {
         VStack(alignment: .leading, spacing: 5) {
             HStack {
                 HStack(spacing: 4) {
-                    Text("PULL REQUEST")
+                    Text(StringLiterals.Badge.pullRequest)
                         .font(AppTheme.Fonts.badgeTitle)
                         .foregroundStyle(Color(hex: 0xA78BFA))
                         .tracking(0.3)
                     if case .pullRequest(_, let merged) = item.type, merged {
-                        Text("MERGED")
+                        Text(StringLiterals.Badge.merged)
                             .font(AppTheme.Fonts.badgeSmall)
                             .foregroundStyle(Color(hex: 0xA78BFA))
                             .padding(.horizontal, 6)
@@ -80,7 +80,7 @@ struct PRCardView: View {
                     .bold()
             }
             if !item.commits.isEmpty {
-                Text("커밋 \(item.commits.count)")
+                Text("\(StringLiterals.Stats.commits) \(item.commits.count)")
             }
         }
         .font(AppTheme.Fonts.stats)

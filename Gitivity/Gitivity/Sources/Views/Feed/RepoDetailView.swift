@@ -85,7 +85,7 @@ struct RepoDetailView: View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
-                    Text("COMMIT")
+                    Text(StringLiterals.Badge.commit)
                         .font(AppTheme.Fonts.badgeTitle)
                         .foregroundStyle(AppTheme.Colors.additions)
                         .tracking(0.3)

@@ -7,9 +7,9 @@ struct ActivityStatsView: View {
 
     var body: some View {
         HStack(spacing: 5) {
-            statBox(value: "\(commits)", label: "커밋", color: AppTheme.Colors.textPrimary)
-            statBox(value: "\(prs)", label: "PR", color: Color(hex: 0x60A5FA))
-            statBox(value: "\(repos)", label: "레포", color: Color(hex: 0xA78BFA))
+            statBox(value: "\(commits)", label: StringLiterals.Stats.commits, color: AppTheme.Colors.textPrimary)
+            statBox(value: "\(prs)", label: StringLiterals.Stats.pr, color: Color(hex: 0x60A5FA))
+            statBox(value: "\(repos)", label: StringLiterals.Stats.repos, color: Color(hex: 0xA78BFA))
         }
     }
 

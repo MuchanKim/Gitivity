@@ -11,15 +11,15 @@ struct OnboardingPageView: View {
             TabView(selection: $currentPage) {
                 onboardingPage(
                     icon: "✦",
-                    title: "내가 만든 것을\n이해하는 방법",
-                    description: "AI가 커밋과 PR을\n사람의 말로 요약해줍니다"
+                    title: StringLiterals.Onboarding.pageTitle,
+                    description: StringLiterals.Onboarding.pageDescription
                 )
                 .tag(0)
 
                 onboardingPage(
                     icon: "📊",
-                    title: "레포별 타임라인",
-                    description: "최근 작업한 레포를\n활동 분류와 함께 확인"
+                    title: StringLiterals.Onboarding.timelineTitle,
+                    description: StringLiterals.Onboarding.timelineDescription
                 )
                 .tag(1)
 
@@ -33,7 +33,7 @@ struct OnboardingPageView: View {
                 VStack {
                     HStack {
                         Spacer()
-                        Button("건너뛰기") {
+                        Button(StringLiterals.Onboarding.skip) {
                             withAnimation { currentPage = 2 }
                         }
                         .font(AppTheme.Fonts.skipButton)
@@ -72,10 +72,10 @@ struct OnboardingPageView: View {
             Spacer()
             Text("🔒")
                 .font(AppTheme.Fonts.onboardingIcon)
-            Text("온디바이스 AI")
+            Text(StringLiterals.Onboarding.onDeviceAI)
                 .font(AppTheme.Fonts.onboardingTitle)
                 .foregroundStyle(.white)
-            Text("데이터가 기기를 떠나지 않습니다")
+            Text(StringLiterals.Onboarding.dataPrivacy)
                 .font(AppTheme.Fonts.onboardingBody)
                 .foregroundStyle(AppTheme.Colors.textSecondary)
             Spacer()
@@ -85,7 +85,7 @@ struct OnboardingPageView: View {
             } label: {
                 HStack(spacing: 8) {
                     Text("🐙")
-                    Text("GitHub로 시작하기")
+                    Text(StringLiterals.Onboarding.signInWithGitHub)
                         .fontWeight(.semibold)
                 }
                 .frame(maxWidth: 260)
@@ -104,7 +104,7 @@ struct OnboardingPageView: View {
                 Text(error).font(.caption).foregroundStyle(AppTheme.Colors.danger)
             }
 
-            Text("계속하면 개인정보 처리방침에 동의하는 것으로 간주됩니다.")
+            Text(StringLiterals.Onboarding.privacyConsent)
                 .font(AppTheme.Fonts.privacyNotice)
                 .foregroundStyle(AppTheme.Colors.textMeta)
                 .multilineTextAlignment(.center)
