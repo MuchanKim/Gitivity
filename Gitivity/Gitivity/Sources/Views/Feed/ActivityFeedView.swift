@@ -6,21 +6,30 @@ struct ActivityFeedView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(viewModel.timelineItems.enumerated()), id: \.element.id) { index, item in
-                        NavigationLink(value: item) {
-                            TimelineRepoCard(
-                                item: item,
-                                isLast: index == viewModel.timelineItems.count - 1
-                            )
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("활동")
+                        .font(.system(size: 28, weight: .heavy))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 18)
+                        .padding(.top, 6)
+                        .padding(.bottom, 20)
+
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(viewModel.timelineItems.enumerated()), id: \.element.id) { index, item in
+                            NavigationLink(value: item) {
+                                TimelineRepoCard(
+                                    item: item,
+                                    isLast: index == viewModel.timelineItems.count - 1
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
+                    .padding(.horizontal, 18)
                 }
-                .padding(.horizontal, 16)
             }
             .background(AppTheme.Colors.background)
-            .navigationTitle("활동")
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: TimelineItem.self) { item in
                 RepoDetailView(item: item)
             }
