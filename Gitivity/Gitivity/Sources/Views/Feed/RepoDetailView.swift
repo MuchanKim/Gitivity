@@ -8,12 +8,12 @@ struct RepoDetailView: View {
         ScrollView {
             VStack(spacing: 16) {
                 // Repo header (center aligned)
-                VStack(spacing: 3) {
+                VStack(spacing: 4) {
                     Text(item.repositoryName.components(separatedBy: "/").last ?? item.repositoryName)
                         .font(.system(size: 24, weight: .heavy))
                         .foregroundStyle(AppTheme.Colors.textPrimary)
                     Text(item.repositoryName)
-                        .font(.system(size: 11))
+                        .font(.system(size: 13))
                         .foregroundStyle(AppTheme.Colors.textMeta)
                 }
                 .frame(maxWidth: .infinity)
@@ -79,16 +79,16 @@ struct RepoDetailView: View {
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
                     Text("COMMIT")
-                        .font(.system(size: 8, weight: .bold))
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(AppTheme.Colors.additions)
                         .tracking(0.3)
                     Spacer()
                     Text(item.timestamp, style: .relative)
-                        .font(.system(size: 9))
+                        .font(.system(size: 13))
                         .foregroundStyle(AppTheme.Colors.textMeta)
                 }
                 Text(item.title)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(AppTheme.Colors.textPrimary)
             }
             .padding(14)

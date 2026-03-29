@@ -10,12 +10,12 @@ struct PRCardView: View {
                 HStack {
                     HStack(spacing: 4) {
                         Text("PULL REQUEST")
-                            .font(.system(size: 8, weight: .bold))
+                            .font(.system(size: 10, weight: .bold))
                             .foregroundStyle(Color(hex: 0xA78BFA))
                             .tracking(0.3)
                         if case .pullRequest(_, let merged) = item.type, merged {
                             Text("MERGED")
-                                .font(.system(size: 7, weight: .bold))
+                                .font(.system(size: 9, weight: .bold))
                                 .foregroundStyle(Color(hex: 0xA78BFA))
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
@@ -25,20 +25,20 @@ struct PRCardView: View {
                     }
                     Spacer()
                     Text(item.timestamp, style: .relative)
-                        .font(.system(size: 9))
+                        .font(.system(size: 13))
                         .foregroundStyle(AppTheme.Colors.textMeta)
                 }
                 Text(item.title)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(AppTheme.Colors.textPrimary)
             }
-            .padding(14)
+            .padding(16)
 
             // AI Summary
             if let summary = item.aiSummary {
                 AISummaryCardView(summary: summary, showDisclaimer: false)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(AppTheme.Colors.aiCardBackground.opacity(0.6))
                     .overlay(alignment: .top) {
@@ -70,10 +70,10 @@ struct PRCardView: View {
                     Text("커밋 \(item.commits.count)")
                 }
             }
-            .font(.system(size: 9))
+            .font(.system(size: 12))
             .foregroundStyle(AppTheme.Colors.textMeta)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
             .frame(maxWidth: .infinity, alignment: .leading)
             .overlay(alignment: .top) {
                 Rectangle().fill(AppTheme.Colors.border).frame(height: 1)

@@ -7,10 +7,10 @@ struct CommitRowView: View {
         HStack(spacing: 8) {
             Circle()
                 .fill(categoryColor)
-                .frame(width: 6, height: 6)
+                .frame(width: 7, height: 7)
 
             Text(commit.translatedMessage ?? commit.originalMessage)
-                .font(.system(size: 10))
+                .font(.system(size: 14))
                 .foregroundStyle(AppTheme.Colors.textPrimary)
                 .lineLimit(2)
 
@@ -26,10 +26,10 @@ struct CommitRowView: View {
                         .foregroundStyle(AppTheme.Colors.deletions)
                 }
             }
-            .font(.system(size: 9))
+            .font(.system(size: 12))
         }
-        .padding(.vertical, 7)
-        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 16)
     }
 
     private var categoryColor: Color {
