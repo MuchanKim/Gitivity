@@ -8,7 +8,7 @@ final class FeedViewModel {
 
     private let keychain = KeychainService()
     private let groupingService = FeedGroupingService()
-    private let promptBuilder = PromptBuilder()
+    private let promptBuilder = ActivityPromptBuilder()
     private let classifier = CommitClassifier()
 
     func loadFeed() async {

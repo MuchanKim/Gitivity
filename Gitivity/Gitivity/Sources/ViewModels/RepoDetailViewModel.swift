@@ -7,7 +7,7 @@ final class RepoDetailViewModel {
     private(set) var categoryDistribution: [CommitCategory: Int] = [:]
     private(set) var isLoading = false
 
-    private let promptBuilder = PromptBuilder()
+    private let promptBuilder = ActivityPromptBuilder()
     private let classifier = CommitClassifier()
 
     func load(from timelineItem: TimelineItem) async {
@@ -85,7 +85,7 @@ final class RepoDetailViewModel {
         _ commits: [Commit],
         provider: FoundationProvider,
         classifier: CommitClassifier,
-        promptBuilder: PromptBuilder
+        promptBuilder: ActivityPromptBuilder
     ) async -> [ClassifiedCommit] {
         await withTaskGroup(of: ClassifiedCommit.self) { group in
             for commit in commits {
