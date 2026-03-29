@@ -7,36 +7,9 @@ struct RepoDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Repo header (center aligned)
-                VStack(spacing: 3) {
-                    Text(item.repositoryName.components(separatedBy: "/").last ?? item.repositoryName)
-                        .font(.system(size: 24, weight: .heavy))
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
-                    Text(item.repositoryName)
-                        .font(.system(size: 11))
-                        .foregroundStyle(AppTheme.Colors.textMeta)
-                }
-                .frame(maxWidth: .infinity)
+                repoHeader
 
-                // AI Summary card
-                if let summary = viewModel.repoSummary {
-                    VStack(alignment: .leading, spacing: 0) {
-                        AISummaryCardView(summary: summary)
-                            .padding(14)
-
-                        if !viewModel.categoryDistribution.isEmpty {
-                            ActivityBarView(distribution: viewModel.categoryDistribution)
-                                .padding(.horizontal, 14)
-                                .padding(.bottom, 10)
-                        }
-                    }
-                    .background(AppTheme.Colors.aiCardBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(AppTheme.Colors.border, lineWidth: 1)
-                    )
-                }
+                aiSummarySection
 
                 // Detail items
                 ForEach(viewModel.detailItems) { detailItem in
@@ -74,29 +47,63 @@ struct RepoDetailView: View {
         }
     }
 
+    private var repoHeader: some View {
+        VStack(spacing: 3) {
+            Text(item.shortRepoName)
+                .font(AppTheme.Fonts.pageTitle)
+                .foregroundStyle(AppTheme.Colors.textPrimary)
+            Text(item.repositoryName)
+                .font(AppTheme.Fonts.timestamp)
+                .foregroundStyle(AppTheme.Colors.textMeta)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    private var aiSummarySection: some View {
+        if let summary = viewModel.repoSummary {
+            VStack(alignment: .leading, spacing: 0) {
+                AISummaryCardView(summary: summary)
+                    .padding(14)
+
+                if !viewModel.categoryDistribution.isEmpty {
+                    ActivityBarView(distribution: viewModel.categoryDistribution)
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 10)
+                }
+            }
+            .background(AppTheme.Colors.aiCardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
+        }
+    }
+
     private func commitCard(_ item: RepoDetailItem, hash: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
                     Text("COMMIT")
-                        .font(.system(size: 8, weight: .bold))
+                        .font(AppTheme.Fonts.badgeTitle)
                         .foregroundStyle(AppTheme.Colors.additions)
                         .tracking(0.3)
                     Spacer()
                     Text(item.timestamp, style: .relative)
-                        .font(.system(size: 9))
+                        .font(AppTheme.Fonts.timestamp)
                         .foregroundStyle(AppTheme.Colors.textMeta)
                 }
                 Text(item.title)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(AppTheme.Fonts.cardTitleSemibold)
                     .foregroundStyle(AppTheme.Colors.textPrimary)
             }
-            .padding(14)
+            .padding(16)
 
             if let summary = item.aiSummary {
                 AISummaryCardView(summary: summary, showDisclaimer: false)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(AppTheme.Colors.aiCardBackground.opacity(0.6))
                     .overlay(alignment: .top) {
