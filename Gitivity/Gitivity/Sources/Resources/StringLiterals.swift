@@ -25,10 +25,23 @@ enum StringLiterals {
     enum AI {
         static let summaryLabel = "✦ AI 요약"
         static let disclaimer = "AI가 생성한 요약입니다"
-        static let unavailableTitle = "Apple Intelligence\n필요"
-        static let unavailableDescription = "Gitivity는 온디바이스 AI를 사용하여\nGitHub 활동을 요약합니다.\n\n이 기능을 사용하려면\nApple Intelligence가 필요합니다."
+
+        // Unavailable — deviceNotEligible
+        static let deviceNotEligibleTitle = "AI 기능을 지원하지 않는\n기기입니다"
+        static let deviceNotEligibleDescription = "Gitivity의 AI 요약 기능은\niPhone 15 Pro 이상에서\n사용할 수 있습니다."
+
+        // Unavailable — appleIntelligenceNotEnabled
+        static let intelligenceNotEnabledTitle = "Apple Intelligence\n필요"
+        static let intelligenceNotEnabledDescription = "Gitivity는 온디바이스 AI를 사용하여\nGitHub 활동을 요약합니다.\n\n이 기능을 사용하려면\nApple Intelligence가 필요합니다."
         static let enableInSettings = "설정에서 활성화하기"
-        static let deviceRequirement = "iPhone 15 Pro 이상 기기에서\n사용할 수 있습니다"
+
+        // Unavailable — modelNotReady
+        static let modelNotReadyTitle = "AI 모델 준비 중"
+        static let modelNotReadyDescription = "모델을 다운로드하고 있습니다.\n잠시 후 다시 시도해주세요."
+
+        // Unavailable — unknown
+        static let unknownUnavailableTitle = "AI 기능을 사용할 수 없습니다"
+        static let unknownUnavailableDescription = "현재 AI 기능을 사용할 수 없습니다.\n나중에 다시 시도해주세요."
     }
 
     enum Settings {
