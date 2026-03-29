@@ -37,7 +37,9 @@ enum StringLiterals {
         static let aiModelValue = "Foundation"
         static let privacyPolicy = "개인정보 처리방침"
         static let appInfo = "앱 정보"
-        static let appVersion = "1.0.0"
+        static var appVersion: String {
+            Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "N/A"
+        }
         static let sectionAI = "AI"
         static let sectionGeneral = "일반"
         static let sectionAccount = "계정"
