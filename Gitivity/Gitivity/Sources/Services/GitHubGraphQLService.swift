@@ -113,18 +113,21 @@ struct GitHubGraphQLService: Sendable {
 
     // MARK: - Commits
 
+    private static let repoFetchLimit = 10
+    private static let commitPerRepoLimit = 10
+
     func fetchCommits(limit: Int = 20) async throws -> [Commit] {
         let query = """
-        query {
+        query($repoLimit: Int!, $commitLimit: Int!) {
           viewer {
             login
-            repositories(first: 10, orderBy: {field: PUSHED_AT, direction: DESC}) {
+            repositories(first: $repoLimit, orderBy: {field: PUSHED_AT, direction: DESC}) {
               nodes {
                 nameWithOwner
                 defaultBranchRef {
                   target {
                     ... on Commit {
-                      history(first: 10) {
+                      history(first: $commitLimit) {
                         nodes {
                           oid message committedDate additions deletions url
                           author { user { login } }
@@ -138,7 +141,11 @@ struct GitHubGraphQLService: Sendable {
           }
         }
         """
-        let result: CommitsResponse = try await execute(query: query)
+        let variables: [String: Any] = [
+            "repoLimit": Self.repoFetchLimit,
+            "commitLimit": Self.commitPerRepoLimit,
+        ]
+        let result: CommitsResponse = try await execute(query: query, variables: variables)
         let login = result.viewer.login
 
         let commits = result.viewer.repositories.nodes.flatMap { repo -> [Commit] in

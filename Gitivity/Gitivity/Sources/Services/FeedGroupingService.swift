@@ -41,7 +41,7 @@ struct FeedGroupingService: Sendable {
             let sorted = repoCommits.sorted { $0.committedDate > $1.committedDate }
             let totalAdditions = sorted.reduce(0) { $0 + $1.additions }
             let totalDeletions = sorted.reduce(0) { $0 + $1.deletions }
-            let latest = sorted[0]
+            guard let latest = sorted.first else { continue }
 
             items.append(FeedItem(
                 id: "push-\(repo)-\(latest.id)",
