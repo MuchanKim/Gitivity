@@ -6,21 +6,30 @@ struct ActivityFeedView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(viewModel.timelineItems.enumerated()), id: \.element.id) { index, item in
-                        NavigationLink(value: item) {
-                            TimelineRepoCard(
-                                item: item,
-                                isLast: index == viewModel.timelineItems.count - 1
-                            )
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(StringLiterals.Feed.title)
+                        .font(AppTheme.Fonts.screenTitle)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 18)
+                        .padding(.top, 6)
+                        .padding(.bottom, 20)
+
+                    LazyVStack(alignment: .leading, spacing: 0) {
+                        ForEach(Array(viewModel.timelineItems.enumerated()), id: \.element.id) { index, item in
+                            NavigationLink(value: item) {
+                                TimelineRepoCard(
+                                    item: item,
+                                    isLast: index == viewModel.timelineItems.count - 1
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
+                    .padding(.horizontal, 18)
                 }
-                .padding(.horizontal, 16)
             }
             .background(AppTheme.Colors.background)
-            .navigationTitle("활동")
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: TimelineItem.self) { item in
                 RepoDetailView(item: item)
             }
@@ -30,19 +39,19 @@ struct ActivityFeedView: View {
                         .tint(AppTheme.Colors.primary)
                 } else if let error = viewModel.error, viewModel.timelineItems.isEmpty {
                     ContentUnavailableView {
-                        Label("오류 발생", systemImage: "exclamationmark.triangle")
+                        Label(StringLiterals.Feed.errorOccurred, systemImage: "exclamationmark.triangle")
                     } description: {
                         Text(error)
                     } actions: {
-                        Button("다시 시도") {
+                        Button(StringLiterals.Feed.retry) {
                             Task { await viewModel.loadFeed() }
                         }
                     }
                 } else if viewModel.timelineItems.isEmpty && !viewModel.isLoading {
                     ContentUnavailableView(
-                        "활동 없음",
+                        StringLiterals.Feed.noActivity,
                         systemImage: "tray",
-                        description: Text("최근 GitHub 활동이 없습니다.")
+                        description: Text(StringLiterals.Feed.noActivityDescription)
                     )
                 }
             }

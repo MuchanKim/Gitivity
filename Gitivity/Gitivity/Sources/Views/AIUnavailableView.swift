@@ -11,24 +11,24 @@ struct AIUnavailableView: View {
                     .fill(Color(hex: 0x1E1B4B))
                     .frame(width: 72, height: 72)
                     .overlay {
-                        Text("✦").font(.system(size: 36))
+                        Text("✦").font(AppTheme.Fonts.onboardingIcon)
                     }
 
-                Text("Apple Intelligence\n필요")
-                    .font(.system(size: 20, weight: .heavy))
+                Text(StringLiterals.AI.unavailableTitle)
+                    .font(AppTheme.Fonts.profileName)
                     .foregroundStyle(.white)
                     .multilineTextAlignment(.center)
 
-                Text("Gitivity는 온디바이스 AI를 사용하여\nGitHub 활동을 요약합니다.\n\n이 기능을 사용하려면\nApple Intelligence가 필요합니다.")
-                    .font(.system(size: 12))
+                Text(StringLiterals.AI.unavailableDescription)
+                    .font(AppTheme.Fonts.stats)
                     .foregroundStyle(AppTheme.Colors.textSecondary)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
 
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     Link(destination: url) {
-                        Text("설정에서 활성화하기")
-                            .font(.system(size: 13, weight: .semibold))
+                        Text(StringLiterals.AI.enableInSettings)
+                            .font(AppTheme.Fonts.sectionTitle)
                             .foregroundStyle(.white)
                             .padding(.horizontal, 24)
                             .padding(.vertical, 12)
@@ -38,8 +38,8 @@ struct AIUnavailableView: View {
                     .padding(.top, 8)
                 }
 
-                Text("iPhone 15 Pro 이상 기기에서\n사용할 수 있습니다")
-                    .font(.system(size: 10))
+                Text(StringLiterals.AI.deviceRequirement)
+                    .font(AppTheme.Fonts.caption)
                     .foregroundStyle(AppTheme.Colors.textMeta)
                     .multilineTextAlignment(.center)
             }
