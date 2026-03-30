@@ -46,7 +46,7 @@ struct FoundationProvider: AIProvider {
                 case .unsupportedLanguageOrLocale:
                     throw .unsupportedLocale
                 default:
-                    throw .generationFailed(underlying: error)
+                    break
                 }
             }
             throw .generationFailed(underlying: error)

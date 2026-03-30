@@ -1,6 +1,7 @@
 import Foundation
 import os
 
+@MainActor
 @Observable
 final class FeedViewModel {
     private(set) var timelineItems: [TimelineItem] = []

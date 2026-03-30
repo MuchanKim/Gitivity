@@ -1,6 +1,7 @@
 import Foundation
 import os
 
+@MainActor
 @Observable
 final class RepoDetailViewModel {
     private(set) var repoSummary: String?
