@@ -1,17 +1,21 @@
 import Foundation
+import os
 
+@MainActor
 @Observable
 final class RepoDetailViewModel {
     private(set) var repoSummary: String?
     private(set) var detailItems: [RepoDetailItem] = []
     private(set) var categoryDistribution: [CommitCategory: Int] = [:]
     private(set) var isLoading = false
+    private(set) var aiError: AIProviderError?
 
-    private let promptBuilder = PromptBuilder()
-    private let classifier = CommitClassifier()
+    private let promptBuilder = ActivityPromptBuilder()
+    private let classifier = CommitClassifier(aiProvider: FoundationProvider())
 
     func load(from timelineItem: TimelineItem) async {
         isLoading = true
+        aiError = nil
         defer { isLoading = false }
 
         categoryDistribution = timelineItem.categoryDistribution
@@ -39,7 +43,13 @@ final class RepoDetailViewModel {
                 body: pr.body,
                 commits: prCommits
             )
-            let summary = try? await provider.summarize(prompt: prompt)
+            var summary: String?
+            do {
+                summary = try await provider.summarize(prompt: prompt)
+            } catch {
+                AILogger.generation.error("[RepoDetail] PR summary failed for \(pr.title): \(error)")
+                if aiError == nil { aiError = error }
+            }
 
             items.append(RepoDetailItem(
                 id: pr.id,
@@ -85,14 +95,19 @@ final class RepoDetailViewModel {
         _ commits: [Commit],
         provider: FoundationProvider,
         classifier: CommitClassifier,
-        promptBuilder: PromptBuilder
+        promptBuilder: ActivityPromptBuilder
     ) async -> [ClassifiedCommit] {
         await withTaskGroup(of: ClassifiedCommit.self) { group in
             for commit in commits {
                 group.addTask {
                     let category = await classifier.classify(commit.message)
                     let prompt = promptBuilder.buildCommitTranslationPrompt(commit.message)
-                    let translation = try? await provider.summarize(prompt: prompt)
+                    var translation: String?
+                    do {
+                        translation = try await provider.summarize(prompt: prompt)
+                    } catch {
+                        AILogger.generation.error("[RepoDetail] commit translation failed: \(error)")
+                    }
 
                     return ClassifiedCommit(
                         id: commit.id,

@@ -1,19 +1,23 @@
 import Foundation
+import os
 
+@MainActor
 @Observable
 final class FeedViewModel {
     private(set) var timelineItems: [TimelineItem] = []
     private(set) var isLoading = false
+    private(set) var aiError: AIProviderError?
     var error: String?
 
     private let keychain = KeychainService()
     private let groupingService = FeedGroupingService()
-    private let promptBuilder = PromptBuilder()
-    private let classifier = CommitClassifier()
+    private let promptBuilder = ActivityPromptBuilder()
+    private let classifier = CommitClassifier(aiProvider: FoundationProvider())
 
     func loadFeed() async {
         isLoading = true
         error = nil
+        aiError = nil
         defer { isLoading = false }
 
         guard let token = try? keychain.read(key: "github_token") else {
@@ -79,7 +83,8 @@ final class FeedViewModel {
                         pullRequests: item.pullRequests,
                         commits: item.commits
                     )
-                    if let summary = try? await provider.summarize(prompt: prompt) {
+                    do {
+                        let summary = try await provider.summarize(prompt: prompt)
                         enriched = TimelineItem(
                             id: enriched.id,
                             repositoryName: enriched.repositoryName,
@@ -90,6 +95,8 @@ final class FeedViewModel {
                             aiSummary: summary,
                             categoryDistribution: enriched.categoryDistribution
                         )
+                    } catch {
+                        AILogger.generation.error("[Feed] summary failed for \(item.repositoryName): \(error)")
                     }
 
                     return (index, enriched)

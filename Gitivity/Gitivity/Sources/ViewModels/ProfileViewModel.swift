@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 @Observable
 final class ProfileViewModel {
     private(set) var user: GitHubUser?
@@ -11,7 +12,7 @@ final class ProfileViewModel {
     private(set) var isLoading = false
 
     private let keychain = KeychainService()
-    private let classifier = CommitClassifier()
+    private let classifier = CommitClassifier(aiProvider: FoundationProvider())
 
     func load() async {
         isLoading = true

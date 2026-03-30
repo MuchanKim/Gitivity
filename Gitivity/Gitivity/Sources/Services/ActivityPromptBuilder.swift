@@ -1,6 +1,6 @@
 import Foundation
 
-nonisolated struct PromptBuilder: Sendable {
+nonisolated struct ActivityPromptBuilder: Sendable {
     func buildRepoSummaryPrompt(
         repoName: String,
         pullRequests: [PullRequest],
