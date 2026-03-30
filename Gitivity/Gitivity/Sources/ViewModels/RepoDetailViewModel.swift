@@ -39,7 +39,12 @@ final class RepoDetailViewModel {
                 body: pr.body,
                 commits: prCommits
             )
-            let summary = try? await provider.summarize(prompt: prompt)
+            var summary: String?
+            do {
+                summary = try await provider.summarize(prompt: prompt)
+            } catch {
+                print("🔴 [RepoDetail] PR summary failed for \(pr.title): \(error)")
+            }
 
             items.append(RepoDetailItem(
                 id: pr.id,
@@ -92,7 +97,12 @@ final class RepoDetailViewModel {
                 group.addTask {
                     let category = await classifier.classify(commit.message)
                     let prompt = promptBuilder.buildCommitTranslationPrompt(commit.message)
-                    let translation = try? await provider.summarize(prompt: prompt)
+                    var translation: String?
+                    do {
+                        translation = try await provider.summarize(prompt: prompt)
+                    } catch {
+                        print("🔴 [RepoDetail] Commit translation failed: \(error)")
+                    }
 
                     return ClassifiedCommit(
                         id: commit.id,

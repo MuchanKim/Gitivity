@@ -79,7 +79,8 @@ final class FeedViewModel {
                         pullRequests: item.pullRequests,
                         commits: item.commits
                     )
-                    if let summary = try? await provider.summarize(prompt: prompt) {
+                    do {
+                        let summary = try await provider.summarize(prompt: prompt)
                         enriched = TimelineItem(
                             id: enriched.id,
                             repositoryName: enriched.repositoryName,
@@ -90,6 +91,8 @@ final class FeedViewModel {
                             aiSummary: summary,
                             categoryDistribution: enriched.categoryDistribution
                         )
+                    } catch {
+                        print("🔴 [Feed] AI summary failed for \(item.repositoryName): \(error)")
                     }
 
                     return (index, enriched)
