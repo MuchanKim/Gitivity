@@ -2,8 +2,6 @@ import Foundation
 import FoundationModels
 import os
 
-private let aiLogger = Logger(subsystem: "com.gitivity", category: "FoundationModels")
-
 struct FoundationProvider: AIProvider {
     var availabilityStatus: AIAvailabilityStatus {
         switch SystemLanguageModel.default.availability {
@@ -20,39 +18,38 @@ struct FoundationProvider: AIProvider {
         }
     }
 
-    func summarize(prompt: String) async throws -> String {
+    func summarize(prompt: String) async throws(AIProviderError) -> String {
         let status = availabilityStatus
-        aiLogger.info("📡 availability: \(String(describing: status))")
+        AILogger.availability.info("status: \(String(describing: status))")
 
         guard status == .available else {
-            aiLogger.error("❌ model unavailable: \(String(describing: status))")
-            throw AIProviderError.modelUnavailable
+            AILogger.availability.warning("model unavailable: \(String(describing: status))")
+            throw .modelUnavailable
         }
 
         let session = LanguageModelSession(
             instructions: "You are a helpful assistant that summarizes GitHub activity. Respond concisely in the same language as the prompt."
         )
 
-        let promptLength = prompt.count
-        aiLogger.info("📝 prompt length: \(promptLength) chars (≈\(promptLength) tokens for CJK)")
+        AILogger.generation.debug("prompt length: \(prompt.count) chars")
 
         do {
             let response = try await session.respond(to: prompt)
-            aiLogger.info("✅ generation succeeded, response length: \(response.content.count)")
+            AILogger.generation.info("succeeded, response: \(response.content.count) chars")
             return response.content
         } catch {
-            aiLogger.error("❌ generation failed: \(error)")
+            AILogger.generation.error("failed: \(error)")
             if let genError = error as? LanguageModelSession.GenerationError {
                 switch genError {
                 case .exceededContextWindowSize:
-                    throw AIProviderError.contextWindowExceeded
+                    throw .contextWindowExceeded
                 case .unsupportedLanguageOrLocale:
-                    throw AIProviderError.unsupportedLocale
+                    throw .unsupportedLocale
                 default:
-                    throw AIProviderError.generationFailed(underlying: error)
+                    throw .generationFailed(underlying: error)
                 }
             }
-            throw AIProviderError.generationFailed(underlying: error)
+            throw .generationFailed(underlying: error)
         }
     }
 }

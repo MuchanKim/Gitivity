@@ -4,7 +4,7 @@ import Testing
 struct MockAIProvider: AIProvider {
     var availabilityStatus: AIAvailabilityStatus = .available
 
-    func summarize(prompt: String) async throws -> String {
+    func summarize(prompt: String) async throws(AIProviderError) -> String {
         "mock summary"
     }
 }

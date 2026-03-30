@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 @Observable
 final class RepoDetailViewModel {
@@ -6,12 +7,14 @@ final class RepoDetailViewModel {
     private(set) var detailItems: [RepoDetailItem] = []
     private(set) var categoryDistribution: [CommitCategory: Int] = [:]
     private(set) var isLoading = false
+    private(set) var aiError: AIProviderError?
 
     private let promptBuilder = ActivityPromptBuilder()
     private let classifier = CommitClassifier(aiProvider: FoundationProvider())
 
     func load(from timelineItem: TimelineItem) async {
         isLoading = true
+        aiError = nil
         defer { isLoading = false }
 
         categoryDistribution = timelineItem.categoryDistribution
@@ -43,7 +46,8 @@ final class RepoDetailViewModel {
             do {
                 summary = try await provider.summarize(prompt: prompt)
             } catch {
-                print("🔴 [RepoDetail] PR summary failed for \(pr.title): \(error)")
+                AILogger.generation.error("[RepoDetail] PR summary failed for \(pr.title): \(error)")
+                if aiError == nil { aiError = error }
             }
 
             items.append(RepoDetailItem(
@@ -101,7 +105,7 @@ final class RepoDetailViewModel {
                     do {
                         translation = try await provider.summarize(prompt: prompt)
                     } catch {
-                        print("🔴 [RepoDetail] Commit translation failed: \(error)")
+                        AILogger.generation.error("[RepoDetail] commit translation failed: \(error)")
                     }
 
                     return ClassifiedCommit(

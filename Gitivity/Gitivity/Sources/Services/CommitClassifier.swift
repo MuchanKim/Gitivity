@@ -1,5 +1,6 @@
 import Foundation
 import FoundationModels
+import os
 
 struct CommitClassifier: Sendable {
     private let aiProvider: AIProvider
@@ -51,6 +52,7 @@ struct CommitClassifier: Sendable {
 
     private func classifyByAI(_ message: String) async -> CommitCategory {
         guard aiProvider.availabilityStatus == .available else {
+            AILogger.classification.debug("skipped (model unavailable)")
             return .chore
         }
         do {
@@ -58,8 +60,10 @@ struct CommitClassifier: Sendable {
                 instructions: "Classify this git commit message into one category: feat, fix, refactor, style, chore, docs, or test. Respond with only the category."
             )
             let response = try await session.respond(to: message, generating: CommitCategory.self)
+            AILogger.classification.debug("classified as \(response.content.rawValue)")
             return response.content
         } catch {
+            AILogger.classification.error("failed: \(error)")
             return .chore
         }
     }

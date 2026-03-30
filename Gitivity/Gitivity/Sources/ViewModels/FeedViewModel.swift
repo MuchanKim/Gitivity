@@ -1,9 +1,11 @@
 import Foundation
+import os
 
 @Observable
 final class FeedViewModel {
     private(set) var timelineItems: [TimelineItem] = []
     private(set) var isLoading = false
+    private(set) var aiError: AIProviderError?
     var error: String?
 
     private let keychain = KeychainService()
@@ -14,6 +16,7 @@ final class FeedViewModel {
     func loadFeed() async {
         isLoading = true
         error = nil
+        aiError = nil
         defer { isLoading = false }
 
         guard let token = try? keychain.read(key: "github_token") else {
@@ -92,7 +95,7 @@ final class FeedViewModel {
                             categoryDistribution: enriched.categoryDistribution
                         )
                     } catch {
-                        print("🔴 [Feed] AI summary failed for \(item.repositoryName): \(error)")
+                        AILogger.generation.error("[Feed] summary failed for \(item.repositoryName): \(error)")
                     }
 
                     return (index, enriched)
