@@ -76,7 +76,7 @@ final class FeedViewModel {
         let promptBuilder = self.promptBuilder
         let classifier = self.classifier
 
-        await withTaskGroup(of: (String, String?, [CommitCategory: Int]).self) { group in
+        await withTaskGroup(of: (String, Result<String, Error>, [CommitCategory: Int]).self) { group in
             for item in items {
                 group.addTask {
                     // Classify commits
@@ -93,22 +93,22 @@ final class FeedViewModel {
                         pullRequests: item.pullRequests,
                         commits: item.commits
                     )
-                    var summary: String?
                     do {
-                        summary = try await provider.summarize(prompt: prompt)
+                        let summary = try await provider.summarize(prompt: prompt)
+                        return (item.repoFullName, .success(summary), distribution)
                     } catch {
                         AILogger.generation.error("[Feed] summary failed for \(item.repositoryName): \(error)")
+                        return (item.repoFullName, .failure(error), distribution)
                     }
-
-                    return (item.repoFullName, summary, distribution)
                 }
             }
 
-            for await (repoName, summary, distribution) in group {
-                if let summary {
+            for await (repoName, result, distribution) in group {
+                switch result {
+                case .success(let summary):
                     aiSummaryStates[repoName] = .loaded(summary)
-                } else {
-                    aiSummaryStates[repoName] = .error(AIProviderError.generationFailed(underlying: NSError(domain: "AI", code: -1)))
+                case .failure(let error):
+                    aiSummaryStates[repoName] = .error(error)
                 }
                 categoryStates[repoName] = .loaded(distribution)
             }

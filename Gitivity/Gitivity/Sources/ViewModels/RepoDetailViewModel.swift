@@ -77,35 +77,43 @@ final class RepoDetailViewModel {
         detailState = .loaded(items.sorted { $0.timestamp > $1.timestamp })
 
         // Generate PR AI summaries independently
-        await generatePRAISummaries(items: items, timelineItem: timelineItem, provider: provider)
+        await generatePRAISummaries(pullRequests: timelineItem.pullRequests, items: items, timelineItem: timelineItem, provider: provider)
     }
 
-    private func generatePRAISummaries(items: [RepoDetailItem], timelineItem: TimelineItem, provider: FoundationProvider) async {
-        await withTaskGroup(of: (String, String?).self) { group in
+    private func generatePRAISummaries(pullRequests: [PullRequest], items: [RepoDetailItem], timelineItem: TimelineItem, provider: FoundationProvider) async {
+        // PR id → PullRequest 매핑 (body 접근용)
+        let prMap = Dictionary(uniqueKeysWithValues: pullRequests.map { ($0.id, $0) })
+
+        await withTaskGroup(of: (String, Result<String, Error>).self) { group in
             for item in items {
                 guard case .pullRequest = item.type else { continue }
+                let pr = prMap[item.id]
+                let prCommits = item.commits.map { classified in
+                    timelineItem.commits.first { $0.id == classified.id }
+                }.compactMap { $0 }
 
                 group.addTask { [promptBuilder] in
                     let prompt = promptBuilder.buildPRSummaryPrompt(
                         title: item.title,
-                        body: "",
-                        commits: timelineItem.commits
+                        body: pr?.body ?? "",
+                        commits: prCommits
                     )
-                    var summary: String?
                     do {
-                        summary = try await provider.summarize(prompt: prompt)
+                        let summary = try await provider.summarize(prompt: prompt)
+                        return (item.id, .success(summary))
                     } catch {
                         AILogger.generation.error("[RepoDetail] PR summary failed for \(item.title): \(error)")
+                        return (item.id, .failure(error))
                     }
-                    return (item.id, summary)
                 }
             }
 
-            for await (itemId, summary) in group {
-                if let summary {
+            for await (itemId, result) in group {
+                switch result {
+                case .success(let summary):
                     itemAISummaries[itemId] = .loaded(summary)
-                } else {
-                    itemAISummaries[itemId] = .error(AIProviderError.generationFailed(underlying: NSError(domain: "AI", code: -1)))
+                case .failure(let error):
+                    itemAISummaries[itemId] = .error(error)
                 }
             }
         }
