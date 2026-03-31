@@ -71,3 +71,7 @@
 - 서드파티 프레임워크 도입 전 반드시 사용자에게 확인
 - 타입별로 별도 Swift 파일 분리 (한 파일에 여러 struct/class/enum 금지)
 - Feature 단위 폴더 구조
+
+## Repository Hygiene
+- `docs/superpowers/` (설계 spec, 구현 plan)은 **커밋하지 않는다**. 로컬 참고용으로만 사용하고 `.gitignore`에 등록되어 있음.
+- main/develop 브랜치에는 **프로덕션 코드와 직접 관련된 파일만** 포함한다. 설계 문서, 작업 계획, 에이전트 설정 파일 등은 git history로 추적 가능하므로 레포에 남기지 않는다.

@@ -51,3 +51,4 @@ secrets/
 Secrets.xcconfig
 .superpowers/
 .worktrees/
+docs/superpowers/
