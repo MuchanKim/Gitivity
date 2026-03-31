@@ -2,14 +2,34 @@ import SwiftUI
 
 struct PRCardView: View {
     let item: RepoDetailItem
+    var aiState: LoadingState<String> = .loading
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             headerSection
 
-            // AI Summary
-            if let summary = item.aiSummary {
+            // AI Summary — switch on aiState instead of item.aiSummary
+            switch aiState {
+            case .loading:
+                AISummarySkeleton()
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(AppTheme.Colors.aiCardBackground.opacity(0.6))
+                    .overlay(alignment: .top) {
+                        Rectangle().fill(AppTheme.Colors.border.opacity(0.5)).frame(height: 1)
+                    }
+            case .loaded(let summary):
                 AISummaryCardView(summary: summary, showDisclaimer: false)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(AppTheme.Colors.aiCardBackground.opacity(0.6))
+                    .overlay(alignment: .top) {
+                        Rectangle().fill(AppTheme.Colors.border.opacity(0.5)).frame(height: 1)
+                    }
+            case .error(let error):
+                AIErrorInlineView(error: error)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)

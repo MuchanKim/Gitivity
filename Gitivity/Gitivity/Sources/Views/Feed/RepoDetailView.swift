@@ -2,27 +2,50 @@ import SwiftUI
 
 struct RepoDetailView: View {
     let item: TimelineItem
+    var feedAISummary: LoadingState<String> = .loading
+    var feedCategory: LoadingState<[CommitCategory: Int]> = .loading
     @State private var viewModel = RepoDetailViewModel()
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                repoHeader
+        Group {
+            switch viewModel.detailState {
+            case .loading:
+                ProgressView()
+                    .tint(AppTheme.Colors.primary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            case .loaded(let detailItems):
+                ScrollView {
+                    VStack(spacing: 16) {
+                        repoHeader
 
-                aiSummarySection
+                        aiSummarySection
 
-                // Detail items
-                ForEach(viewModel.detailItems) { detailItem in
-                    switch detailItem.type {
-                    case .pullRequest:
-                        PRCardView(item: detailItem)
-                    case .commit(let hash):
-                        commitCard(detailItem, hash: hash)
+                        ForEach(detailItems) { detailItem in
+                            switch detailItem.type {
+                            case .pullRequest:
+                                PRCardView(
+                                    item: detailItem,
+                                    aiState: viewModel.itemAISummaries[detailItem.id] ?? .loading
+                                )
+                            case .commit(let hash):
+                                commitCard(detailItem, hash: hash)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 20)
+                }
+            case .error(let error):
+                ContentUnavailableView {
+                    Label(StringLiterals.Feed.errorOccurred, systemImage: "exclamationmark.triangle")
+                } description: {
+                    Text(error.localizedDescription)
+                } actions: {
+                    Button(StringLiterals.Feed.retry) {
+                        Task { await viewModel.load(from: item, feedAISummary: feedAISummary, feedCategory: feedCategory) }
                     }
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 20)
         }
         .background(AppTheme.Colors.background)
         .navigationBarTitleDisplayMode(.inline)
@@ -36,14 +59,8 @@ struct RepoDetailView: View {
                 }
             }
         }
-        .overlay {
-            if viewModel.isLoading {
-                ProgressView()
-                    .tint(AppTheme.Colors.primary)
-            }
-        }
         .task {
-            await viewModel.load(from: item)
+            await viewModel.load(from: item, feedAISummary: feedAISummary, feedCategory: feedCategory)
         }
     }
 
@@ -59,26 +76,32 @@ struct RepoDetailView: View {
         .frame(maxWidth: .infinity)
     }
 
-    @ViewBuilder
     private var aiSummarySection: some View {
-        if let summary = viewModel.repoSummary {
-            VStack(alignment: .leading, spacing: 0) {
-                AISummaryCardView(summary: summary)
-                    .padding(14)
-
-                if !viewModel.categoryDistribution.isEmpty {
-                    ActivityBarView(distribution: viewModel.categoryDistribution)
-                        .padding(.horizontal, 14)
-                        .padding(.bottom, 10)
+        VStack(alignment: .leading, spacing: 0) {
+            Group {
+                switch viewModel.repoAISummary {
+                case .loading:
+                    AISummarySkeleton()
+                case .loaded(let summary):
+                    AISummaryCardView(summary: summary)
+                case .error(let error):
+                    AIErrorInlineView(error: error)
                 }
             }
-            .background(AppTheme.Colors.aiCardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-            .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(AppTheme.Colors.border, lineWidth: 1)
-            )
+            .padding(14)
+
+            if !viewModel.categoryDistribution.isEmpty {
+                ActivityBarView(distribution: viewModel.categoryDistribution)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 10)
+            }
         }
+        .background(AppTheme.Colors.aiCardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(AppTheme.Colors.border, lineWidth: 1)
+        )
     }
 
     private func commitCard(_ item: RepoDetailItem, hash: String) -> some View {
@@ -100,8 +123,28 @@ struct RepoDetailView: View {
             }
             .padding(16)
 
-            if let summary = item.aiSummary {
+            // AI summary for commit
+            switch viewModel.itemAISummaries[item.id] ?? .loading {
+            case .loading:
+                AISummarySkeleton()
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(AppTheme.Colors.aiCardBackground.opacity(0.6))
+                    .overlay(alignment: .top) {
+                        Rectangle().fill(AppTheme.Colors.border.opacity(0.5)).frame(height: 1)
+                    }
+            case .loaded(let summary):
                 AISummaryCardView(summary: summary, showDisclaimer: false)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(AppTheme.Colors.aiCardBackground.opacity(0.6))
+                    .overlay(alignment: .top) {
+                        Rectangle().fill(AppTheme.Colors.border.opacity(0.5)).frame(height: 1)
+                    }
+            case .error(let error):
+                AIErrorInlineView(error: error)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)

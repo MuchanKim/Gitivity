@@ -26,6 +26,8 @@ struct TimelineItem: Sendable, Identifiable {
     var shortRepoName: String {
         repositoryName.components(separatedBy: "/").last ?? repositoryName
     }
+
+    nonisolated var repoFullName: String { repositoryName }
 }
 
 extension TimelineItem: Hashable {

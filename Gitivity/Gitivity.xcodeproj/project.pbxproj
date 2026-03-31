@@ -39,6 +39,7 @@
 				Tests/GitivityTests/AuthServiceTests.swift,
 				Tests/GitivityTests/CommitClassifierTests.swift,
 				Tests/GitivityTests/KeychainServiceTests.swift,
+				Tests/GitivityTests/LoadingStateTests.swift,
 				Tests/GitivityUITests/GitivityUITests.swift,
 				Tests/GitivityUITests/GitivityUITestsLaunchTests.swift,
 			);
@@ -51,6 +52,7 @@
 				Tests/GitivityTests/AuthServiceTests.swift,
 				Tests/GitivityTests/CommitClassifierTests.swift,
 				Tests/GitivityTests/KeychainServiceTests.swift,
+				Tests/GitivityTests/LoadingStateTests.swift,
 			);
 			target = D1BC49FC2F7237A200A95ED5 /* GitivityTests */;
 		};
