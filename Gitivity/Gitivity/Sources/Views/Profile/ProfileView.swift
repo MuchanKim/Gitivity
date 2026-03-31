@@ -6,16 +6,43 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    titleRow
-                    profileHero
-                    statsSection
-                    contributionGrid
-                    activitySection
+            Group {
+                switch viewModel.profileState {
+                case .loading:
+                    ScrollView {
+                        ProfileSkeletonView()
+                    }
+                case .loaded(let data):
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            titleRow
+                            profileHero(data: data)
+                            statsSection(data: data)
+                            contributionGrid(data: data)
+                            activitySection
+                        }
+                        .padding(.horizontal, 18)
+                        .padding(.bottom, 20)
+                    }
+                    .refreshable {
+                        await viewModel.load()
+                    }
+                case .error(let error):
+                    ContentUnavailableView {
+                        Label(StringLiterals.Feed.errorOccurred, systemImage: "exclamationmark.triangle")
+                    } description: {
+                        Text(error.localizedDescription)
+                    } actions: {
+                        if viewModel.isRetrying {
+                            ProgressView()
+                                .tint(AppTheme.Colors.primary)
+                        } else {
+                            Button(StringLiterals.Feed.retry) {
+                                Task { await viewModel.load() }
+                            }
+                        }
+                    }
                 }
-                .padding(.horizontal, 18)
-                .padding(.bottom, 20)
             }
             .background(AppTheme.Colors.background)
             .toolbar(.hidden, for: .navigationBar)
@@ -44,9 +71,9 @@ struct ProfileView: View {
         .padding(.top, 4)
     }
 
-    private var profileHero: some View {
+    private func profileHero(data: ProfileData) -> some View {
         VStack(spacing: 10) {
-            AsyncImage(url: URL(string: viewModel.user?.avatarURL ?? "")) { image in
+            AsyncImage(url: URL(string: data.user.avatarURL)) { image in
                 image.resizable().scaledToFill()
             } placeholder: {
                 Circle().fill(AppTheme.Colors.cardBackground)
@@ -56,10 +83,10 @@ struct ProfileView: View {
             .overlay(Circle().stroke(AppTheme.Colors.border, lineWidth: 3))
 
             VStack(spacing: 2) {
-                Text(viewModel.user?.name ?? viewModel.user?.login ?? "")
+                Text(data.user.name ?? data.user.login)
                     .font(AppTheme.Fonts.profileName)
                     .foregroundStyle(.white)
-                Text("@\(viewModel.user?.login ?? "")")
+                Text("@\(data.user.login)")
                     .font(AppTheme.Fonts.cardBody)
                     .foregroundStyle(AppTheme.Colors.textTertiary)
             }
@@ -68,39 +95,47 @@ struct ProfileView: View {
         .padding(.bottom, 4)
     }
 
-    private var statsSection: some View {
+    private func statsSection(data: ProfileData) -> some View {
         ActivityStatsView(
-            commits: viewModel.totalCommits,
-            prs: viewModel.totalPRs,
-            repos: viewModel.activeRepos
+            commits: data.totalCommits,
+            prs: data.totalPRs,
+            repos: data.activeRepos
         )
     }
 
-    private var contributionGrid: some View {
-        ContributionGridView(contributions: viewModel.contributions)
+    private func contributionGrid(data: ProfileData) -> some View {
+        ContributionGridView(contributions: data.contributions)
     }
 
-    @ViewBuilder
     private var activitySection: some View {
-        if !viewModel.categoryDistribution.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(StringLiterals.Profile.activityClassification)
-                    .font(AppTheme.Fonts.sectionTitle)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-                ActivityBarView(
-                    distribution: viewModel.categoryDistribution,
-                    barHeight: 6,
-                    showPercentage: true
-                )
+        Group {
+            switch viewModel.categoryState {
+            case .loading:
+                EmptyView()
+            case .loaded(let distribution):
+                if !distribution.isEmpty {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(StringLiterals.Profile.activityClassification)
+                            .font(AppTheme.Fonts.sectionTitle)
+                            .foregroundStyle(AppTheme.Colors.textSecondary)
+                        ActivityBarView(
+                            distribution: distribution,
+                            barHeight: 6,
+                            showPercentage: true
+                        )
+                    }
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 14)
+                    .background(AppTheme.Colors.cardBackground)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(AppTheme.Colors.border, lineWidth: 1)
+                    )
+                }
+            case .error:
+                EmptyView()
             }
-            .padding(.vertical, 12)
-            .padding(.horizontal, 14)
-            .background(AppTheme.Colors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(AppTheme.Colors.border, lineWidth: 1)
-            )
         }
     }
 }

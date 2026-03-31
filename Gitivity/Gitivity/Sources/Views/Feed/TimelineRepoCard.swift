@@ -3,6 +3,8 @@ import SwiftUI
 struct TimelineRepoCard: View {
     let item: TimelineItem
     let isLast: Bool
+    var aiState: LoadingState<String> = .loading
+    var categoryState: LoadingState<[CommitCategory: Int]> = .loading
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
@@ -53,19 +55,9 @@ struct TimelineRepoCard: View {
 
     private var cardBody: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if let summary = item.aiSummary {
-                AISummaryCardView(summary: summary, showDisclaimer: false)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 14)
-                    .background(AppTheme.Colors.aiCardBackground)
-            }
+            aiSummarySection
 
-            if !item.categoryDistribution.isEmpty {
-                ActivityBarView(distribution: item.categoryDistribution)
-                    .padding(.top, item.aiSummary != nil ? 10 : 0)
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 10)
-            }
+            categorySection
 
             statsRow
         }
@@ -75,6 +67,50 @@ struct TimelineRepoCard: View {
             RoundedRectangle(cornerRadius: 14)
                 .stroke(AppTheme.Colors.border, lineWidth: 1)
         )
+    }
+
+    private var aiSummarySection: some View {
+        Group {
+            switch aiState {
+            case .loading:
+                AISummarySkeleton()
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 14)
+                    .background(AppTheme.Colors.aiCardBackground)
+            case .loaded(let summary):
+                AISummaryCardView(summary: summary, showDisclaimer: false)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 14)
+                    .background(AppTheme.Colors.aiCardBackground)
+            case .error(let error):
+                AIErrorInlineView(error: error)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 14)
+                    .background(AppTheme.Colors.aiCardBackground)
+            }
+        }
+    }
+
+    private var categorySection: some View {
+        Group {
+            switch categoryState {
+            case .loading:
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(AppTheme.Colors.textTertiary.opacity(0.15))
+                    .frame(height: 4)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+            case .loaded(let distribution):
+                if !distribution.isEmpty {
+                    ActivityBarView(distribution: distribution)
+                        .padding(.top, 10)
+                        .padding(.horizontal, 14)
+                        .padding(.bottom, 10)
+                }
+            case .error:
+                EmptyView()
+            }
+        }
     }
 
     private var statsRow: some View {
