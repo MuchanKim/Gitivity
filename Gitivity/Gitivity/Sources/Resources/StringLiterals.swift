@@ -7,6 +7,7 @@ enum StringLiterals {
         static let noActivityDescription = "최근 GitHub 활동이 없습니다."
         static let errorOccurred = "오류 발생"
         static let retry = "다시 시도"
+        static let loginRequired = "로그인이 필요합니다."
     }
 
     enum Profile {
@@ -42,6 +43,15 @@ enum StringLiterals {
         // Unavailable — unknown
         static let unknownUnavailableTitle = "AI 기능을 사용할 수 없습니다"
         static let unknownUnavailableDescription = "현재 AI 기능을 사용할 수 없습니다.\n나중에 다시 시도해주세요."
+
+        // Inline error messages
+        static let inlineDeviceNotEligible = "이 기기에서는 AI 요약을 지원하지 않습니다"
+        static let inlineIntelligenceNotEnabled = "Apple Intelligence를 활성화해주세요"
+        static let inlineModelNotReady = "AI 모델 준비 중"
+        static let inlineGenerationFailed = "요약 생성에 실패했습니다"
+        static let inlineContextWindowExceeded = "데이터가 너무 많아 요약할 수 없습니다"
+        static let inlineUnsupportedLocale = "지원하지 않는 언어입니다"
+        static let retryGeneration = "다시 시도"
     }
 
     enum Settings {
