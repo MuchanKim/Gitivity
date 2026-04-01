@@ -165,6 +165,51 @@ struct GitHubGraphQLService: Sendable {
         return Array(commits.sorted { $0.committedDate > $1.committedDate }.prefix(limit))
     }
 
+    // MARK: - Repository Metadata
+
+    func fetchRepoMetadata(owner: String, name: String) async throws -> RepositoryMetadata {
+        let query = """
+        query($owner: String!, $name: String!) {
+          repository(owner: $owner, name: $name) {
+            description
+            stargazerCount
+            forkCount
+            primaryLanguage { name }
+            languages(first: 5, orderBy: {field: SIZE, direction: DESC}) {
+              nodes { name }
+            }
+            object(expression: "HEAD:README.md") {
+              ... on Blob { text }
+            }
+            latestRelease { tagName }
+          }
+        }
+        """
+        let variables: [String: Any] = ["owner": owner, "name": name]
+        let result: RepoMetadataResponse = try await execute(query: query, variables: variables)
+        let repo = result.repository
+
+        let languages: [String]
+        if let primary = repo.primaryLanguage?.name {
+            let others = repo.languages?.nodes?.compactMap(\.name).filter { $0 != primary } ?? []
+            languages = [primary] + others
+        } else {
+            languages = repo.languages?.nodes?.compactMap(\.name) ?? []
+        }
+
+        let readmeText = repo.object?.text
+        let readmeExcerpt = readmeText.map { String($0.prefix(2000)) }
+
+        return RepositoryMetadata(
+            description: repo.description,
+            readmeExcerpt: readmeExcerpt,
+            languages: languages,
+            latestRelease: repo.latestRelease?.tagName,
+            starCount: repo.stargazerCount,
+            forkCount: repo.forkCount
+        )
+    }
+
     // MARK: - Networking
 
     private func execute<T: Decodable>(query: String, variables: [String: Any] = [:]) async throws -> T {
@@ -370,6 +415,38 @@ private struct CommitsResponse: Decodable {
 
     struct CommitUser: Decodable {
         let login: String
+    }
+}
+
+// MARK: - Repository Metadata Response
+
+private struct RepoMetadataResponse: Decodable {
+    let repository: RepoMetadataNode
+
+    struct RepoMetadataNode: Decodable {
+        let description: String?
+        let stargazerCount: Int
+        let forkCount: Int
+        let primaryLanguage: LanguageNode?
+        let languages: LanguageConnection?
+        let object: BlobNode?
+        let latestRelease: ReleaseNode?
+    }
+
+    struct LanguageNode: Decodable {
+        let name: String?
+    }
+
+    struct LanguageConnection: Decodable {
+        let nodes: [LanguageNode]?
+    }
+
+    struct BlobNode: Decodable {
+        let text: String?
+    }
+
+    struct ReleaseNode: Decodable {
+        let tagName: String
     }
 }
 
