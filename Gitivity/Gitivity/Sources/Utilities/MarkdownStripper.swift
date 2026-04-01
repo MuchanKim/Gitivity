@@ -2,7 +2,7 @@ import Foundation
 
 nonisolated enum MarkdownStripper {
     static func strip(_ text: String) -> String {
-        var lines = text.components(separatedBy: "\n")
+        var lines = text.components(separatedBy: .newlines)
 
         lines = lines.map { line in
             var l = line

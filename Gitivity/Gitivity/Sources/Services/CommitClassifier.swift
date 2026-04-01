@@ -57,7 +57,7 @@ struct CommitClassifier: Sendable {
         }
         do {
             let session = LanguageModelSession(
-                instructions: "Classify this git commit message into one category: feat, fix, refactor, style, chore, docs, or test. Respond with only the category."
+                instructions: "Classify this git commit message into exactly one category: feat, fix, refactor, style, chore, docs, or test. Respond with the category word only. No markdown, no explanation."
             )
             let response = try await session.respond(to: message, generating: CommitCategory.self)
             AILogger.classification.debug("classified as \(response.content.rawValue)")
