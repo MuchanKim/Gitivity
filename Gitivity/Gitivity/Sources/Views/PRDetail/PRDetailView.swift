@@ -6,12 +6,13 @@ struct PRDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 0) {
                 headerSection
+                divider
                 bodySection
+                divider
                 commitSection
             }
-            .padding(.horizontal, 16)
             .padding(.bottom, 20)
         }
         .background(AppTheme.Colors.background)
@@ -31,66 +32,71 @@ struct PRDetailView: View {
         }
     }
 
+    private var divider: some View {
+        Rectangle()
+            .fill(AppTheme.Colors.border)
+            .frame(height: 1)
+            .padding(.horizontal, 16)
+    }
+
     // MARK: - Header
 
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                HStack(spacing: 4) {
-                    Text(StringLiterals.Badge.pullRequest)
-                        .font(AppTheme.Fonts.badgeTitle)
-                        .foregroundStyle(Color(hex: 0xA78BFA))
-                        .tracking(0.3)
-
-                    if case .pullRequest(let number, _) = item.type, number > 0 {
-                        Text("#\(number)")
-                            .font(AppTheme.Fonts.badgeSmall)
-                            .foregroundStyle(AppTheme.Colors.textMeta)
-                    }
-
-                    if case .pullRequest(_, let merged) = item.type, merged {
-                        Text(StringLiterals.Badge.merged)
-                            .font(AppTheme.Fonts.badgeSmall)
-                            .foregroundStyle(Color(hex: 0xA78BFA))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color(hex: 0x1E1B4B))
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
-                    }
-                }
-                Spacer()
-            }
-
+        VStack(alignment: .leading, spacing: 0) {
             Text(item.title)
                 .font(AppTheme.Fonts.pageTitle)
                 .foregroundStyle(AppTheme.Colors.textPrimary)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
 
-            statsRow
-        }
-    }
+            HStack(spacing: 8) {
+                if case .pullRequest(let number, _) = item.type, number > 0 {
+                    Text("PR #\(number)")
+                        .font(AppTheme.Fonts.badgeSmall)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 4)
+                        .background(AppTheme.Colors.primary)
+                        .clipShape(Capsule())
+                }
 
-    private var statsRow: some View {
-        HStack(spacing: 10) {
-            Text(item.timestamp, style: .relative)
-            if item.additions > 0 {
-                Text("+\(item.additions)")
-                    .foregroundStyle(AppTheme.Colors.additions)
-                    .bold()
+                if case .pullRequest(_, let merged) = item.type, merged {
+                    Text(StringLiterals.Badge.merged)
+                        .font(AppTheme.Fonts.badgeSmall)
+                        .fontWeight(.bold)
+                        .foregroundStyle(Color(hex: 0xA78BFA))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 4)
+                        .background(Color(hex: 0x1E1B4B))
+                        .clipShape(Capsule())
+                }
             }
-            if item.deletions > 0 {
-                Text("-\(item.deletions)")
-                    .foregroundStyle(AppTheme.Colors.deletions)
-                    .bold()
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+
+            HStack(spacing: 12) {
+                Text(item.timestamp, style: .relative)
+                if item.additions > 0 {
+                    Text("+\(item.additions)")
+                        .foregroundStyle(AppTheme.Colors.additions)
+                        .bold()
+                }
+                if item.deletions > 0 {
+                    Text("-\(item.deletions)")
+                        .foregroundStyle(AppTheme.Colors.deletions)
+                        .bold()
+                }
+                if !item.commits.isEmpty {
+                    Text("\(StringLiterals.Stats.commits) \(item.commits.count)")
+                }
             }
-            if !item.commits.isEmpty {
-                Text("\(StringLiterals.Stats.commits) \(item.commits.count)")
-            }
-            if item.changedFiles > 0 {
-                Text("\(StringLiterals.PRDetail.files) \(item.changedFiles)")
-            }
+            .font(AppTheme.Fonts.stats)
+            .foregroundStyle(AppTheme.Colors.textMeta)
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .padding(.bottom, 16)
         }
-        .font(AppTheme.Fonts.stats)
-        .foregroundStyle(AppTheme.Colors.textMeta)
     }
 
     // MARK: - Body
@@ -98,36 +104,16 @@ struct PRDetailView: View {
     @ViewBuilder
     private var bodySection: some View {
         if !item.body.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text(StringLiterals.PRDetail.body)
-                        .font(AppTheme.Fonts.label)
-                        .foregroundStyle(AppTheme.Colors.textTertiary)
-                        .tracking(0.5)
-
-                    Spacer()
-
-                    if LanguageDetector.isLikelyEnglish(item.body), viewModel.isTranslated {
-                        Button(action: viewModel.toggleOriginal) {
-                            Text(viewModel.showOriginal
-                                ? StringLiterals.PRDetail.showTranslation
-                                : StringLiterals.PRDetail.showOriginal)
-                                .font(AppTheme.Fonts.caption)
-                                .foregroundStyle(AppTheme.Colors.primary)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-
+            VStack(alignment: .leading, spacing: 0) {
                 bodyContent
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
+
+                translationToggle
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
+                    .padding(.bottom, 16)
             }
-            .padding(16)
-            .background(AppTheme.Colors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(AppTheme.Colors.border, lineWidth: 1)
-            )
         }
     }
 
@@ -135,10 +121,7 @@ struct PRDetailView: View {
     private var bodyContent: some View {
         if LanguageDetector.isLikelyEnglish(item.body) {
             if viewModel.showOriginal {
-                Text(item.body)
-                    .font(AppTheme.Fonts.cardBody)
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-                    .lineSpacing(4)
+                bodyText(item.body)
             } else {
                 switch viewModel.translatedBody {
                 case .loading:
@@ -147,28 +130,40 @@ struct PRDetailView: View {
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(.vertical, 8)
                 case .loaded(let translated):
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(translated)
-                            .font(AppTheme.Fonts.cardBody)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
-                            .lineSpacing(4)
+                    VStack(alignment: .leading, spacing: 12) {
+                        bodyText(translated)
                         Text(StringLiterals.PRDetail.translatedByAI)
                             .font(AppTheme.Fonts.caption)
                             .foregroundStyle(AppTheme.Colors.textMeta)
-                            .padding(.top, 2)
                     }
                 case .error:
-                    Text(item.body)
-                        .font(AppTheme.Fonts.cardBody)
-                        .foregroundStyle(AppTheme.Colors.textSecondary)
-                        .lineSpacing(4)
+                    bodyText(item.body)
                 }
             }
         } else {
-            Text(item.body)
-                .font(AppTheme.Fonts.cardBody)
-                .foregroundStyle(AppTheme.Colors.textSecondary)
-                .lineSpacing(4)
+            bodyText(item.body)
+        }
+    }
+
+    private func bodyText(_ text: String) -> some View {
+        MarkdownBodyView(text: text)
+    }
+
+    @ViewBuilder
+    private var translationToggle: some View {
+        if LanguageDetector.isLikelyEnglish(item.body), viewModel.isTranslated {
+            Button(action: viewModel.toggleOriginal) {
+                HStack(spacing: 5) {
+                    Text("🌐")
+                        .font(.system(size: 13))
+                    Text(viewModel.showOriginal
+                        ? StringLiterals.PRDetail.showTranslation
+                        : StringLiterals.PRDetail.showOriginal)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(AppTheme.Colors.primary)
+                }
+            }
+            .buttonStyle(.plain)
         }
     }
 
@@ -177,25 +172,12 @@ struct PRDetailView: View {
     @ViewBuilder
     private var commitSection: some View {
         if !item.commits.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("\(StringLiterals.PRDetail.commits) (\(item.commits.count))")
-                    .font(AppTheme.Fonts.label)
-                    .foregroundStyle(AppTheme.Colors.textTertiary)
-                    .tracking(0.5)
-
-                PRCommitTimelineView(
-                    commits: item.commits,
-                    showAll: viewModel.showAllCommits,
-                    onToggleShowAll: viewModel.toggleShowAllCommits
-                )
-            }
-            .padding(16)
-            .background(AppTheme.Colors.cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            PRCommitTimelineView(
+                commits: item.commits,
+                showAll: viewModel.showAllCommits,
+                onToggleShowAll: viewModel.toggleShowAllCommits
             )
+            .padding(16)
         }
     }
 }

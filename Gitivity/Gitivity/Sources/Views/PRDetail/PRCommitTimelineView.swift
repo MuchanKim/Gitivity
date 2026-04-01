@@ -103,17 +103,25 @@ private struct TimelineCommitRow: View {
                     Spacer()
 
                     if commit.commitBody != nil {
-                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                            .font(.system(size: 11))
+                        Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
                             .foregroundStyle(AppTheme.Colors.textTertiary)
                     }
                 }
 
                 if isExpanded, let body = commit.commitBody {
                     Text(body)
-                        .font(AppTheme.Fonts.caption)
-                        .foregroundStyle(AppTheme.Colors.textTertiary)
-                        .lineSpacing(3)
+                        .font(.system(size: 13))
+                        .foregroundStyle(AppTheme.Colors.textSecondary)
+                        .lineSpacing(4)
+                        .padding(10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(AppTheme.Colors.aiCardBackground)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(AppTheme.Colors.border, lineWidth: 1)
+                        )
                         .padding(.top, 4)
                 }
             }
