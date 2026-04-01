@@ -58,6 +58,9 @@ struct MarkdownBodyView: View {
         case 1: .system(size: 20, weight: .bold)
         case 2: .system(size: 17, weight: .bold)
         case 3: .system(size: 15, weight: .bold)
+        case 4: .system(size: 15, weight: .semibold)
+        case 5: .system(size: 14, weight: .semibold)
+        case 6: .system(size: 13, weight: .semibold)
         default: .system(size: 15, weight: .semibold)
         }
     }
@@ -117,7 +120,7 @@ struct MarkdownBodyView: View {
             }
 
             // Heading
-            if let match = trimmed.firstMatch(of: /^(#{1,4})\s+(.+)/) {
+            if let match = trimmed.firstMatch(of: /^(#{1,6})\s+(.+)/) {
                 flushParagraph()
                 let level = match.1.count
                 let content = String(match.2)

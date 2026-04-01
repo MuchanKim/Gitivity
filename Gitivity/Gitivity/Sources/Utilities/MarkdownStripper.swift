@@ -32,17 +32,17 @@ nonisolated enum MarkdownStripper {
             return l
         }
 
-        // 빈 줄 정리: 연속 빈 줄 제거
+        // 빈 줄 정리: 연속 빈 줄 제거 (하나의 빈 줄만 유지)
         var result: [String] = []
         for line in lines {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
             if trimmed.isEmpty {
-                if let last = result.last, !last.trimmingCharacters(in: .whitespaces).isEmpty {
-                    continue
+                if !result.isEmpty && result.last != "" {
+                    result.append("")
                 }
-                continue
+            } else {
+                result.append(trimmed)
             }
-            result.append(trimmed)
         }
 
         return result.joined(separator: "\n")
