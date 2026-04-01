@@ -7,44 +7,28 @@ struct RepoDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Repo header (center aligned)
-                VStack(spacing: 3) {
-                    Text(item.repositoryName.components(separatedBy: "/").last ?? item.repositoryName)
-                        .font(.system(size: 24, weight: .heavy))
-                        .foregroundStyle(AppTheme.Colors.textPrimary)
-                    Text(item.repositoryName)
-                        .font(.system(size: 11))
-                        .foregroundStyle(AppTheme.Colors.textMeta)
-                }
-                .frame(maxWidth: .infinity)
+                repoHeader
+                onepagerSection
 
-                // AI Summary card
-                if let summary = viewModel.repoSummary {
-                    VStack(alignment: .leading, spacing: 0) {
-                        AISummaryCardView(summary: summary)
-                            .padding(14)
-
-                        if !viewModel.categoryDistribution.isEmpty {
-                            ActivityBarView(distribution: viewModel.categoryDistribution)
-                                .padding(.horizontal, 14)
-                                .padding(.bottom, 10)
+                if viewModel.detailItems.isEmpty {
+                    ProgressView()
+                        .tint(AppTheme.Colors.primary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 40)
+                } else {
+                    ForEach(viewModel.detailItems) { detailItem in
+                        switch detailItem.type {
+                        case .pullRequest:
+                            NavigationLink(value: detailItem) {
+                                PRCardView(
+                                    item: detailItem,
+                                    aiState: viewModel.itemAISummaries[detailItem.id] ?? .loading
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        case .commit(let hash):
+                            commitCard(detailItem, hash: hash)
                         }
-                    }
-                    .background(AppTheme.Colors.aiCardBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 14)
-                            .stroke(AppTheme.Colors.border, lineWidth: 1)
-                    )
-                }
-
-                // Detail items
-                ForEach(viewModel.detailItems) { detailItem in
-                    switch detailItem.type {
-                    case .pullRequest:
-                        PRCardView(item: detailItem)
-                    case .commit(let hash):
-                        commitCard(detailItem, hash: hash)
                     }
                 }
             }
@@ -63,40 +47,98 @@ struct RepoDetailView: View {
                 }
             }
         }
-        .overlay {
-            if viewModel.isLoading {
-                ProgressView()
-                    .tint(AppTheme.Colors.primary)
-            }
+        .navigationDestination(for: RepoDetailItem.self) { detailItem in
+            PRDetailView(item: detailItem)
         }
         .task {
             await viewModel.load(from: item)
         }
     }
 
+    @ViewBuilder
+    private var onepagerSection: some View {
+        switch viewModel.repoMetadata {
+        case .loading:
+            VStack(spacing: 8) {
+                SkeletonBlock(width: 200, height: 16)
+                SkeletonBlock(height: 60)
+                SkeletonBlock(width: 120, height: 16)
+            }
+            .padding(16)
+            .background(AppTheme.Colors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
+        case .loaded(let metadata):
+            RepoOnepagerView(
+                repoName: item.repositoryName,
+                metadata: metadata,
+                prCount: item.prCount,
+                commitCount: item.commitCount,
+                aiAnalysis: viewModel.onepagerSummary
+            )
+        case .error:
+            EmptyView()
+        }
+    }
+
+    private var repoHeader: some View {
+        VStack(spacing: 3) {
+            Text(item.shortRepoName)
+                .font(AppTheme.Fonts.pageTitle)
+                .foregroundStyle(AppTheme.Colors.textPrimary)
+            Text(item.repositoryName)
+                .font(AppTheme.Fonts.timestamp)
+                .foregroundStyle(AppTheme.Colors.textMeta)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
     private func commitCard(_ item: RepoDetailItem, hash: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
-                    Text("COMMIT")
-                        .font(.system(size: 8, weight: .bold))
+                    Text(StringLiterals.Badge.commit)
+                        .font(AppTheme.Fonts.badgeTitle)
                         .foregroundStyle(AppTheme.Colors.additions)
                         .tracking(0.3)
                     Spacer()
                     Text(item.timestamp, style: .relative)
-                        .font(.system(size: 9))
+                        .font(AppTheme.Fonts.timestamp)
                         .foregroundStyle(AppTheme.Colors.textMeta)
                 }
                 Text(item.title)
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(AppTheme.Fonts.cardTitleSemibold)
                     .foregroundStyle(AppTheme.Colors.textPrimary)
             }
-            .padding(14)
+            .padding(16)
 
-            if let summary = item.aiSummary {
-                AISummaryCardView(summary: summary, showDisclaimer: false)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 10)
+            // AI description for commit
+            switch viewModel.itemAISummaries[item.id] ?? .loading {
+            case .loading:
+                AISummarySkeleton()
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(AppTheme.Colors.aiCardBackground.opacity(0.6))
+                    .overlay(alignment: .top) {
+                        Rectangle().fill(AppTheme.Colors.border.opacity(0.5)).frame(height: 1)
+                    }
+            case .loaded(let description):
+                CommitAIDescriptionView(description: description)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(AppTheme.Colors.aiCardBackground.opacity(0.6))
+                    .overlay(alignment: .top) {
+                        Rectangle().fill(AppTheme.Colors.border.opacity(0.5)).frame(height: 1)
+                    }
+            case .error(let error):
+                AIErrorInlineView(error: error)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(AppTheme.Colors.aiCardBackground.opacity(0.6))
                     .overlay(alignment: .top) {

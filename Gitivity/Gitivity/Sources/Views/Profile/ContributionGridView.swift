@@ -5,39 +5,48 @@ struct ContributionGridView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("기여 활동")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(AppTheme.Colors.textSecondary)
-                Spacer()
-                Text("최근 30일")
-                    .font(.system(size: 9))
-                    .foregroundStyle(AppTheme.Colors.textMeta)
-            }
-
-            let rows = stride(from: 0, to: contributions.count, by: 10).map {
-                Array(contributions[$0..<min($0 + 10, contributions.count)])
-            }
-
-            VStack(spacing: 2) {
-                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                    HStack(spacing: 2) {
-                        ForEach(row) { day in
-                            RoundedRectangle(cornerRadius: 2)
-                                .fill(grassColor(level: day.level))
-                                .frame(width: 8, height: 8)
-                        }
-                    }
-                }
-            }
+            header
+            gridContent
         }
-        .padding(12)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 14)
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(AppTheme.Colors.border, lineWidth: 1)
         )
+    }
+
+    private var header: some View {
+        HStack {
+            Text(StringLiterals.Profile.contributionActivity)
+                .font(AppTheme.Fonts.sectionTitle)
+                .foregroundStyle(AppTheme.Colors.textSecondary)
+            Spacer()
+            Text(StringLiterals.Profile.last30Days)
+                .font(AppTheme.Fonts.stats)
+                .foregroundStyle(AppTheme.Colors.textMeta)
+        }
+    }
+
+    private var gridContent: some View {
+        LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: 10, maximum: 10), spacing: 3)],
+            spacing: 3
+        ) {
+            ForEach(contributions) { day in
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(grassColor(level: day.level))
+                    .frame(width: 10, height: 10)
+                    .overlay {
+                        if day.level == 0 {
+                            RoundedRectangle(cornerRadius: 2)
+                                .stroke(AppTheme.Colors.border, lineWidth: 0.5)
+                        }
+                    }
+            }
+        }
     }
 
     private func grassColor(level: Int) -> Color {

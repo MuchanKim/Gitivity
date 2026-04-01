@@ -22,6 +22,12 @@ struct TimelineItem: Sendable, Identifiable {
 
     var prCount: Int { pullRequests.count }
     var commitCount: Int { commits.count }
+
+    var shortRepoName: String {
+        repositoryName.components(separatedBy: "/").last ?? repositoryName
+    }
+
+    nonisolated var repoFullName: String { repositoryName }
 }
 
 extension TimelineItem: Hashable {

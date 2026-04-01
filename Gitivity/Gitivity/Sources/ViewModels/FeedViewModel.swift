@@ -1,23 +1,32 @@
 import Foundation
+import os
 
+@MainActor
 @Observable
 final class FeedViewModel {
-    private(set) var timelineItems: [TimelineItem] = []
-    private(set) var isLoading = false
-    var error: String?
+    private(set) var feedState: LoadingState<[TimelineItem]> = .loading
+    private(set) var aiSummaryStates: [String: LoadingState<String>] = [:]
+    private(set) var categoryStates: [String: LoadingState<[CommitCategory: Int]>] = [:]
+    private(set) var isRetrying = false
 
     private let keychain = KeychainService()
     private let groupingService = FeedGroupingService()
-    private let promptBuilder = PromptBuilder()
-    private let classifier = CommitClassifier()
+    private let promptBuilder = ActivityPromptBuilder()
+    private let classifier = CommitClassifier(aiProvider: FoundationProvider())
 
     func loadFeed() async {
-        isLoading = true
-        error = nil
-        defer { isLoading = false }
+        // Refresh: keep existing data visible
+        // Retry from error: keep error screen, show spinner on button
+        if case .loaded = feedState {
+            // refresh path — don't reset to .loading
+        } else if case .error = feedState {
+            isRetrying = true
+        } else {
+            feedState = .loading
+        }
 
         guard let token = try? keychain.read(key: "github_token") else {
-            error = "로그인이 필요합니다."
+            feedState = .error(AuthError.noCode)
             return
         }
 
@@ -30,77 +39,83 @@ final class FeedViewModel {
 
             let (fetchedPRs, fetchedIssues, fetchedCommits) = try await (prs, issues, commits)
 
-            var items = groupingService.groupIntoTimeline(
+            let items = groupingService.groupIntoTimeline(
                 pullRequests: fetchedPRs,
                 commits: fetchedCommits,
                 issues: fetchedIssues
             )
 
-            // Classify commits and generate AI summaries
-            items = await enrichWithAI(items)
+            isRetrying = false
+            feedState = .loaded(items)
 
-            timelineItems = items
+            // Start AI enrichment independently
+            for item in items {
+                aiSummaryStates[item.repoFullName] = .loading
+                categoryStates[item.repoFullName] = .loading
+            }
+            await enrichWithAI(items)
         } catch {
-            self.error = error.localizedDescription
+            if let apiError = error as? GitHubAPIError, case .httpError(401) = apiError {
+                // Token expired — clear token so AuthViewModel detects it
+                try? KeychainService().delete(key: "github_token")
+                isRetrying = false
+                feedState = .error(error)
+                return
+            }
+            isRetrying = false
+            if case .loaded = feedState {
+                // refresh failure — keep old data
+            } else {
+                feedState = .error(error)
+            }
         }
     }
 
-    private func enrichWithAI(_ items: [TimelineItem]) async -> [TimelineItem] {
+    private func enrichWithAI(_ items: [TimelineItem]) async {
         let provider = FoundationProvider()
         let promptBuilder = self.promptBuilder
         let classifier = self.classifier
 
-        return await withTaskGroup(of: (Int, TimelineItem).self) { group in
-            for (index, item) in items.enumerated() {
+        await withTaskGroup(of: (String, Result<String, Error>, [CommitCategory: Int]).self) { group in
+            for item in items {
                 group.addTask {
-                    var enriched = item
-
-                    // Classify commits
+                    // 1. Classify commits (항상 수행 — ActivityBarView용)
                     let messages = item.commits.map(\.message)
                     let categories = await classifier.classifyBatch(messages)
-                    var distribution: [CommitCategory: Int] = [:]
-                    for category in categories {
-                        distribution[category, default: 0] += 1
-                    }
-                    enriched = TimelineItem(
-                        id: item.id,
-                        repositoryName: item.repositoryName,
-                        repositoryOwner: item.repositoryOwner,
-                        lastActivityDate: item.lastActivityDate,
-                        pullRequests: item.pullRequests,
-                        commits: item.commits,
-                        aiSummary: item.aiSummary,
-                        categoryDistribution: distribution
-                    )
 
-                    // Generate AI summary
+                    var distribution: [CommitCategory: Int] = [:]
+                    var categorizedCommits: [CommitCategory: [String]] = [:]
+                    for (message, category) in zip(messages, categories) {
+                        distribution[category, default: 0] += 1
+                        categorizedCommits[category, default: []].append(message)
+                    }
+
+                    // 2. AI summary — PR + 카테고리 데이터 전달
                     let prompt = promptBuilder.buildRepoSummaryPrompt(
                         repoName: item.repositoryName,
                         pullRequests: item.pullRequests,
-                        commits: item.commits
+                        categorizedCommits: categorizedCommits
                     )
-                    if let summary = try? await provider.summarize(prompt: prompt) {
-                        enriched = TimelineItem(
-                            id: enriched.id,
-                            repositoryName: enriched.repositoryName,
-                            repositoryOwner: enriched.repositoryOwner,
-                            lastActivityDate: enriched.lastActivityDate,
-                            pullRequests: enriched.pullRequests,
-                            commits: enriched.commits,
-                            aiSummary: summary,
-                            categoryDistribution: enriched.categoryDistribution
-                        )
+                    do {
+                        let summary = try await provider.summarize(prompt: prompt)
+                        return (item.repoFullName, .success(summary), distribution)
+                    } catch {
+                        AILogger.generation.error("[Feed] summary failed for \(item.repositoryName): \(error)")
+                        return (item.repoFullName, .failure(error), distribution)
                     }
-
-                    return (index, enriched)
                 }
             }
 
-            var results = [(Int, TimelineItem)]()
-            for await result in group {
-                results.append(result)
+            for await (repoName, result, distribution) in group {
+                switch result {
+                case .success(let summary):
+                    aiSummaryStates[repoName] = .loaded(summary)
+                case .failure(let error):
+                    aiSummaryStates[repoName] = .error(error)
+                }
+                categoryStates[repoName] = .loaded(distribution)
             }
-            return results.sorted { $0.0 < $1.0 }.map(\.1)
         }
     }
+
 }

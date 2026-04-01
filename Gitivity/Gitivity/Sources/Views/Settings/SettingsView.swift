@@ -10,38 +10,38 @@ struct SettingsView: View {
             Section {
                 HStack {
                     settingsIcon("✦", background: Color(hex: 0x1E1B4B), foreground: Color(hex: 0xA78BFA))
-                    Text("AI 모델")
+                    Text(StringLiterals.Settings.aiModel)
                     Spacer()
-                    Text("Foundation")
+                    Text(StringLiterals.Settings.aiModelValue)
                         .foregroundStyle(AppTheme.Colors.textSecondary)
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 12))
+                        .font(AppTheme.Fonts.stats)
                         .foregroundStyle(AppTheme.Colors.textMeta)
                 }
             } header: {
-                Text("AI")
+                Text(StringLiterals.Settings.sectionAI)
             }
 
             // General Section
             Section {
                 HStack {
                     settingsIcon("🔒", background: AppTheme.Colors.cardBackground, foreground: AppTheme.Colors.textTertiary)
-                    Text("개인정보 처리방침")
+                    Text(StringLiterals.Settings.privacyPolicy)
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 12))
+                        .font(AppTheme.Fonts.stats)
                         .foregroundStyle(AppTheme.Colors.textMeta)
                 }
 
                 HStack {
                     settingsIcon("ℹ️", background: AppTheme.Colors.cardBackground, foreground: AppTheme.Colors.textTertiary)
-                    Text("앱 정보")
+                    Text(StringLiterals.Settings.appInfo)
                     Spacer()
-                    Text("1.0.0")
+                    Text(StringLiterals.Settings.appVersion)
                         .foregroundStyle(AppTheme.Colors.textSecondary)
                 }
             } header: {
-                Text("일반")
+                Text(StringLiterals.Settings.sectionGeneral)
             }
 
             // Account Section
@@ -51,7 +51,7 @@ struct SettingsView: View {
                 } label: {
                     HStack {
                         settingsIcon("↩️", background: AppTheme.Colors.cardBackground, foreground: AppTheme.Colors.textTertiary)
-                        Text("로그아웃")
+                        Text(StringLiterals.Settings.signOut)
                             .foregroundStyle(AppTheme.Colors.textPrimary)
                     }
                 }
@@ -62,34 +62,34 @@ struct SettingsView: View {
                     HStack {
                         settingsIcon("✕", background: Color(hex: 0x2D1215), foreground: AppTheme.Colors.danger)
                         VStack(alignment: .leading) {
-                            Text("계정 삭제")
+                            Text(StringLiterals.Settings.deleteAccount)
                                 .foregroundStyle(AppTheme.Colors.danger)
-                            Text("모든 데이터가 삭제됩니다")
+                            Text(StringLiterals.Settings.deleteAccountWarning)
                                 .font(.caption)
                                 .foregroundStyle(AppTheme.Colors.textTertiary)
                         }
                     }
                 }
             } header: {
-                Text("계정")
+                Text(StringLiterals.Settings.sectionAccount)
             }
         }
         .scrollContentBackground(.hidden)
         .background(AppTheme.Colors.background)
-        .navigationTitle("설정")
+        .navigationTitle(StringLiterals.Settings.title)
         .navigationBarTitleDisplayMode(.inline)
-        .confirmationDialog("계정을 삭제하시겠습니까?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
-            Button("삭제", role: .destructive) {
+        .confirmationDialog(StringLiterals.Settings.deleteAccountConfirm, isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button(StringLiterals.Settings.deleteButton, role: .destructive) {
                 Task { await deleteAccount() }
             }
         } message: {
-            Text("Keychain 토큰이 삭제되고 로그아웃됩니다. 이 작업은 되돌릴 수 없습니다.")
+            Text(StringLiterals.Settings.deleteAccountDetail)
         }
     }
 
     private func settingsIcon(_ icon: String, background: Color, foreground: Color) -> some View {
         Text(icon)
-            .font(.system(size: 13))
+            .font(AppTheme.Fonts.timestamp)
             .frame(width: 28, height: 28)
             .background(background)
             .foregroundStyle(foreground)

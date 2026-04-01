@@ -3,11 +3,11 @@ import SwiftUI
 struct MainTabView: View {
     var body: some View {
         TabView {
-            Tab("피드", systemImage: "list.clipboard") {
+            Tab(StringLiterals.Tab.feed, systemImage: "list.clipboard") {
                 ActivityFeedView()
             }
 
-            Tab("프로필", systemImage: "person") {
+            Tab(StringLiterals.Tab.profile, systemImage: "person") {
                 ProfileView()
             }
         }

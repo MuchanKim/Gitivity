@@ -25,6 +25,43 @@ enum AppTheme {
         static let style = Color(hex: 0xA78BFA)
         static let chore = Color(hex: 0x64748B)
     }
+
+    // MARK: - Typography
+    enum Fonts {
+        // Display
+        static let screenTitle = Font.system(size: 28, weight: .heavy)
+        static let pageTitle = Font.system(size: 24, weight: .heavy)
+
+        // Profile
+        static let profileName = Font.system(size: 20, weight: .bold)
+        static let statNumber = Font.system(size: 26, weight: .bold)
+
+        // Card
+        static let cardTitle = Font.system(size: 16, weight: .bold)
+        static let cardTitleSemibold = Font.system(size: 16, weight: .semibold)
+        static let cardBody = Font.system(size: 14)
+        static let cardBodySemibold = Font.system(size: 14, weight: .semibold)
+
+        // Meta
+        static let timestamp = Font.system(size: 13)
+        static let sectionTitle = Font.system(size: 13, weight: .semibold)
+        static let stats = Font.system(size: 12)
+
+        // Small
+        static let label = Font.system(size: 11, weight: .bold)
+        static let legend = Font.system(size: 11)
+        static let monoCaption = Font.system(size: 11, design: .monospaced)
+        static let caption = Font.system(size: 10)
+        static let badgeTitle = Font.system(size: 10, weight: .bold)
+        static let badgeSmall = Font.system(size: 9, weight: .bold)
+
+        // Onboarding
+        static let onboardingIcon = Font.system(size: 44)
+        static let onboardingTitle = Font.system(size: 24, weight: .heavy)
+        static let onboardingBody = Font.system(size: 13)
+        static let skipButton = Font.system(size: 14)
+        static let privacyNotice = Font.system(size: 9)
+    }
 }
 
 extension Color {

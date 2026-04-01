@@ -1,103 +1,223 @@
 import Foundation
+import os
 
+@MainActor
 @Observable
 final class RepoDetailViewModel {
-    private(set) var repoSummary: String?
     private(set) var detailItems: [RepoDetailItem] = []
-    private(set) var categoryDistribution: [CommitCategory: Int] = [:]
-    private(set) var isLoading = false
+    private(set) var itemAISummaries: [String: LoadingState<String>] = [:]
+    private(set) var repoMetadata: LoadingState<RepositoryMetadata> = .loading
+    private(set) var onepagerSummary: LoadingState<String> = .loading
 
-    private let promptBuilder = PromptBuilder()
-    private let classifier = CommitClassifier()
+    private let promptBuilder = ActivityPromptBuilder()
+    private let classifier = CommitClassifier(aiProvider: FoundationProvider())
 
     func load(from timelineItem: TimelineItem) async {
-        isLoading = true
-        defer { isLoading = false }
-
-        categoryDistribution = timelineItem.categoryDistribution
-        repoSummary = timelineItem.aiSummary
-
         let provider = FoundationProvider()
+
+        // Fetch repo metadata in parallel with detail items
+        async let metadataTask: Void = loadRepoMetadata(
+            repoName: timelineItem.repositoryName,
+            timelineItem: timelineItem,
+            provider: provider
+        )
+
         var items: [RepoDetailItem] = []
 
-        // PR items with AI summaries
+        // PR items — build immediately
         for pr in timelineItem.pullRequests.sorted(by: { $0.createdAt > $1.createdAt }) {
             let prCommits = timelineItem.commits.filter { commit in
                 commit.committedDate >= pr.createdAt.addingTimeInterval(-86400 * 7) &&
                 commit.committedDate <= (pr.mergedAt ?? pr.createdAt)
             }
 
-            let classifiedCommits = await Self.classifyAndTranslate(
+            let classifiedCommits = await Self.classifyCommits(
                 prCommits,
-                provider: provider,
-                classifier: classifier,
-                promptBuilder: promptBuilder
+                classifier: classifier
             )
 
-            let prompt = promptBuilder.buildPRSummaryPrompt(
-                title: pr.title,
-                body: pr.body,
-                commits: prCommits
-            )
-            let summary = try? await provider.summarize(prompt: prompt)
-
+            itemAISummaries[pr.id] = .loading
             items.append(RepoDetailItem(
                 id: pr.id,
                 type: .pullRequest(number: Self.extractPRNumber(pr.title), merged: pr.mergedAt != nil),
                 title: pr.title,
-                aiSummary: summary,
+                body: pr.body,
+                url: pr.url,
+                aiSummary: nil,
                 timestamp: pr.createdAt,
                 additions: pr.additions,
                 deletions: pr.deletions,
+                changedFiles: pr.changedFiles,
                 commits: classifiedCommits
             ))
         }
 
-        // Standalone commits (not in any PR)
+        // Standalone commits
         let prCommitIDs = Set(items.flatMap { $0.commits.map(\.id) })
         let standaloneCommits = timelineItem.commits.filter { !prCommitIDs.contains($0.id) }
 
         for commit in standaloneCommits.sorted(by: { $0.committedDate > $1.committedDate }) {
-            let classified = await Self.classifyAndTranslate(
-                [commit],
-                provider: provider,
-                classifier: classifier,
-                promptBuilder: promptBuilder
-            )
-            guard let c = classified.first else { continue }
+            let category = await classifier.classify(commit.message)
 
+            itemAISummaries[commit.id] = .loading
             items.append(RepoDetailItem(
                 id: commit.id,
                 type: .commit(hash: String(commit.id.prefix(7))),
                 title: commit.message.components(separatedBy: "\n").first ?? commit.message,
-                aiSummary: c.translatedMessage,
+                body: "",
+                url: commit.url,
+                aiSummary: nil,
                 timestamp: commit.committedDate,
                 additions: commit.additions,
                 deletions: commit.deletions,
+                changedFiles: 0,
                 commits: []
             ))
         }
 
         detailItems = items.sorted { $0.timestamp > $1.timestamp }
+
+        // AI summaries — async, independent per item
+        await generateAISummaries(
+            items: detailItems,
+            timelineItem: timelineItem,
+            provider: provider
+        )
+
+        await metadataTask
     }
 
-    nonisolated private static func classifyAndTranslate(
+    private func loadRepoMetadata(
+        repoName: String,
+        timelineItem: TimelineItem,
+        provider: FoundationProvider
+    ) async {
+        let keychain = KeychainService()
+        guard let token = try? keychain.read(key: "github_token") else {
+            repoMetadata = .error(AuthError.noCode)
+            return
+        }
+
+        let components = repoName.split(separator: "/")
+        guard components.count == 2 else {
+            repoMetadata = .error(GitHubAPIError.invalidResponse)
+            return
+        }
+
+        let api = GitHubGraphQLService(accessToken: token)
+
+        let metadata: RepositoryMetadata
+        do {
+            metadata = try await api.fetchRepoMetadata(
+                owner: String(components[0]),
+                name: String(components[1])
+            )
+            repoMetadata = .loaded(metadata)
+        } catch {
+            AILogger.generation.error("[RepoDetail] metadata fetch failed: \(error)")
+            repoMetadata = .error(error)
+            onepagerSummary = .error(error)
+            return
+        }
+
+        // Generate onepager AI summary (metadata 성공 후에만 시도)
+        do {
+            let recentActivity = buildRecentActivitySummary(from: timelineItem)
+            let prompt = promptBuilder.buildRepoOnepagerPrompt(
+                repoName: repoName,
+                description: metadata.description,
+                readmeExcerpt: metadata.readmeExcerpt,
+                languages: metadata.languages,
+                recentActivity: recentActivity
+            )
+            let analysis = try await provider.summarize(prompt: prompt)
+            onepagerSummary = .loaded(analysis)
+        } catch {
+            AILogger.generation.error("[RepoDetail] onepager AI failed: \(error)")
+            onepagerSummary = .error(error)
+        }
+    }
+
+    private func buildRecentActivitySummary(from item: TimelineItem) -> String {
+        var parts: [String] = []
+        if !item.pullRequests.isEmpty {
+            let prTitles = item.pullRequests.prefix(3).map(\.title).joined(separator: ", ")
+            parts.append("PR \(item.pullRequests.count)건: \(prTitles)")
+        }
+        if !item.commits.isEmpty {
+            parts.append("커밋 \(item.commits.count)건")
+        }
+        return parts.isEmpty ? "최근 활동 없음" : parts.joined(separator: ". ")
+    }
+
+    private func generateAISummaries(
+        items: [RepoDetailItem],
+        timelineItem: TimelineItem,
+        provider: FoundationProvider
+    ) async {
+        let prMap = Dictionary(uniqueKeysWithValues: timelineItem.pullRequests.map { ($0.id, $0) })
+
+        await withTaskGroup(of: (String, Result<String, Error>).self) { group in
+            for item in items {
+                switch item.type {
+                case .pullRequest:
+                    let pr = prMap[item.id]
+                    let prCommits = item.commits.map { classified in
+                        timelineItem.commits.first { $0.id == classified.id }
+                    }.compactMap { $0 }
+
+                    group.addTask { [promptBuilder] in
+                        let prompt = promptBuilder.buildPRSummaryPrompt(
+                            title: item.title,
+                            body: pr?.body ?? "",
+                            commits: prCommits
+                        )
+                        do {
+                            let summary = try await provider.summarize(prompt: prompt)
+                            return (item.id, .success(summary))
+                        } catch {
+                            AILogger.generation.error("[RepoDetail] PR summary failed for \(item.title): \(error)")
+                            return (item.id, .failure(error))
+                        }
+                    }
+
+                case .commit:
+                    group.addTask { [promptBuilder] in
+                        let prompt = promptBuilder.buildCommitDescriptionPrompt(item.title)
+                        do {
+                            let description = try await provider.summarize(prompt: prompt)
+                            return (item.id, .success(description))
+                        } catch {
+                            AILogger.generation.error("[RepoDetail] commit desc failed for \(item.title): \(error)")
+                            return (item.id, .failure(error))
+                        }
+                    }
+                }
+            }
+
+            for await (itemId, result) in group {
+                switch result {
+                case .success(let text):
+                    itemAISummaries[itemId] = .loaded(text)
+                case .failure(let error):
+                    itemAISummaries[itemId] = .error(error)
+                }
+            }
+        }
+    }
+
+    nonisolated private static func classifyCommits(
         _ commits: [Commit],
-        provider: FoundationProvider,
-        classifier: CommitClassifier,
-        promptBuilder: PromptBuilder
+        classifier: CommitClassifier
     ) async -> [ClassifiedCommit] {
         await withTaskGroup(of: ClassifiedCommit.self) { group in
             for commit in commits {
                 group.addTask {
                     let category = await classifier.classify(commit.message)
-                    let prompt = promptBuilder.buildCommitTranslationPrompt(commit.message)
-                    let translation = try? await provider.summarize(prompt: prompt)
-
                     return ClassifiedCommit(
                         id: commit.id,
                         originalMessage: commit.message,
-                        translatedMessage: translation,
+                        translatedMessage: nil,
                         category: category,
                         additions: commit.additions,
                         deletions: commit.deletions,
@@ -105,11 +225,8 @@ final class RepoDetailViewModel {
                     )
                 }
             }
-
             var results: [ClassifiedCommit] = []
-            for await result in group {
-                results.append(result)
-            }
+            for await result in group { results.append(result) }
             return results.sorted { $0.timestamp > $1.timestamp }
         }
     }

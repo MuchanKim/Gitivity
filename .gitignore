@@ -50,3 +50,5 @@ Thumbs.db
 secrets/
 Secrets.xcconfig
 .superpowers/
+.worktrees/
+docs/superpowers/

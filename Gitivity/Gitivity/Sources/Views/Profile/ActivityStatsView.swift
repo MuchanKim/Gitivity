@@ -7,23 +7,23 @@ struct ActivityStatsView: View {
 
     var body: some View {
         HStack(spacing: 5) {
-            statBox(value: "\(commits)", label: "커밋", color: AppTheme.Colors.textPrimary)
-            statBox(value: "\(prs)", label: "PR", color: Color(hex: 0x60A5FA))
-            statBox(value: "\(repos)", label: "레포", color: Color(hex: 0xA78BFA))
+            statBox(value: "\(commits)", label: StringLiterals.Stats.commits, color: AppTheme.Colors.textPrimary)
+            statBox(value: "\(prs)", label: StringLiterals.Stats.pr, color: Color(hex: 0x60A5FA))
+            statBox(value: "\(repos)", label: StringLiterals.Stats.repos, color: Color(hex: 0xA78BFA))
         }
     }
 
     private func statBox(value: String, label: String, color: Color) -> some View {
-        VStack(spacing: 2) {
+        VStack(spacing: 4) {
             Text(value)
-                .font(.system(size: 22, weight: .bold))
+                .font(AppTheme.Fonts.statNumber)
                 .foregroundStyle(color)
             Text(label)
-                .font(.system(size: 9))
+                .font(AppTheme.Fonts.stats)
                 .foregroundStyle(AppTheme.Colors.textTertiary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
+        .padding(.vertical, 14)
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(

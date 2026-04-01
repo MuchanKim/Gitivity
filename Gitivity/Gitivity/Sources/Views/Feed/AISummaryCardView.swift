@@ -10,21 +10,32 @@ struct AISummaryCardView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("✦ AI 요약")
-                .font(.system(size: 8, weight: .bold))
+        VStack(alignment: .leading, spacing: 6) {
+            Text(StringLiterals.AI.summaryLabel)
+                .font(AppTheme.Fonts.label)
                 .foregroundStyle(AppTheme.Colors.aiLabel)
                 .tracking(0.5)
-            Text(summary)
-                .font(.system(size: 11))
+
+            Text(cleanedSummary)
+                .font(AppTheme.Fonts.cardBody)
                 .foregroundStyle(AppTheme.Colors.textSecondary)
                 .lineSpacing(4)
+
             if showDisclaimer {
-                Text("AI가 생성한 요약입니다")
-                    .font(.system(size: 7))
+                Text(StringLiterals.AI.disclaimer)
+                    .font(AppTheme.Fonts.caption)
                     .foregroundStyle(AppTheme.Colors.textMeta)
-                    .padding(.top, 4)
+                    .padding(.top, 2)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var cleanedSummary: String {
+        MarkdownStripper.strip(summary)
+            .components(separatedBy: .newlines)
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
     }
 }
