@@ -22,8 +22,7 @@ struct PRCardView: View {
             case .loaded(let summary):
                 AISummaryCardView(
                     summary: summary,
-                    showDisclaimer: false,
-                    extraCount: max(0, item.commits.count - 2)
+                    showDisclaimer: false
                 )
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)

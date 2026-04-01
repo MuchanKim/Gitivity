@@ -70,28 +70,24 @@ struct TimelineRepoCard: View {
     }
 
     private var aiSummarySection: some View {
-        Group {
-            switch aiState {
-            case .loading:
-                AISummarySkeleton()
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 14)
-                    .background(AppTheme.Colors.aiCardBackground)
-            case .loaded(let summary):
-                AISummaryCardView(
-                    summary: summary,
-                    showDisclaimer: false,
-                    extraCount: max(0, item.commitCount - 2)
-                )
-                .padding(.vertical, 12)
-                .padding(.horizontal, 14)
-                .background(AppTheme.Colors.aiCardBackground)
-            case .error(let error):
-                AIErrorInlineView(error: error)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 14)
-                    .background(AppTheme.Colors.aiCardBackground)
+        ZStack(alignment: .topLeading) {
+            AppTheme.Colors.aiCardBackground
+
+            Group {
+                switch aiState {
+                case .loading:
+                    AISummarySkeleton()
+                case .loaded(let summary):
+                    AISummaryCardView(
+                        summary: summary,
+                        showDisclaimer: false
+                    )
+                case .error(let error):
+                    AIErrorInlineView(error: error)
+                }
             }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 14)
         }
     }
 
