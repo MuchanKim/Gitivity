@@ -19,10 +19,13 @@ struct RepoDetailView: View {
                     ForEach(viewModel.detailItems) { detailItem in
                         switch detailItem.type {
                         case .pullRequest:
-                            PRCardView(
-                                item: detailItem,
-                                aiState: viewModel.itemAISummaries[detailItem.id] ?? .loading
-                            )
+                            NavigationLink(value: detailItem) {
+                                PRCardView(
+                                    item: detailItem,
+                                    aiState: viewModel.itemAISummaries[detailItem.id] ?? .loading
+                                )
+                            }
+                            .buttonStyle(.plain)
                         case .commit(let hash):
                             commitCard(detailItem, hash: hash)
                         }
@@ -43,6 +46,9 @@ struct RepoDetailView: View {
                     }
                 }
             }
+        }
+        .navigationDestination(for: RepoDetailItem.self) { detailItem in
+            PRDetailView(item: detailItem)
         }
         .task {
             await viewModel.load(from: item)

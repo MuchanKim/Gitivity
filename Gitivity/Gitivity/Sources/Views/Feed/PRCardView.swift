@@ -83,6 +83,9 @@ struct PRCardView: View {
                 Text(item.timestamp, style: .relative)
                     .font(AppTheme.Fonts.timestamp)
                     .foregroundStyle(AppTheme.Colors.textMeta)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(AppTheme.Colors.textTertiary)
             }
             Text(item.title)
                 .font(AppTheme.Fonts.cardTitleSemibold)
