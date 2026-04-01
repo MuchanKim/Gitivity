@@ -68,11 +68,7 @@ struct ActivityFeedView: View {
             .background(AppTheme.Colors.background)
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: TimelineItem.self) { item in
-                RepoDetailView(
-                    item: item,
-                    feedAISummary: viewModel.aiSummaryStates[item.repoFullName] ?? .loading,
-                    feedCategory: viewModel.categoryStates[item.repoFullName] ?? .loading
-                )
+                RepoDetailView(item: item)
             }
             .task {
                 await viewModel.loadFeed()

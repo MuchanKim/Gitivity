@@ -2,50 +2,34 @@ import SwiftUI
 
 struct RepoDetailView: View {
     let item: TimelineItem
-    var feedAISummary: LoadingState<String> = .loading
-    var feedCategory: LoadingState<[CommitCategory: Int]> = .loading
     @State private var viewModel = RepoDetailViewModel()
 
     var body: some View {
-        Group {
-            switch viewModel.detailState {
-            case .loading:
-                ProgressView()
-                    .tint(AppTheme.Colors.primary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            case .loaded(let detailItems):
-                ScrollView {
-                    VStack(spacing: 16) {
-                        repoHeader
+        ScrollView {
+            VStack(spacing: 16) {
+                repoHeader
 
-                        aiSummarySection
-
-                        ForEach(detailItems) { detailItem in
-                            switch detailItem.type {
-                            case .pullRequest:
-                                PRCardView(
-                                    item: detailItem,
-                                    aiState: viewModel.itemAISummaries[detailItem.id] ?? .loading
-                                )
-                            case .commit(let hash):
-                                commitCard(detailItem, hash: hash)
-                            }
+                if viewModel.detailItems.isEmpty {
+                    ProgressView()
+                        .tint(AppTheme.Colors.primary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 40)
+                } else {
+                    ForEach(viewModel.detailItems) { detailItem in
+                        switch detailItem.type {
+                        case .pullRequest:
+                            PRCardView(
+                                item: detailItem,
+                                aiState: viewModel.itemAISummaries[detailItem.id] ?? .loading
+                            )
+                        case .commit(let hash):
+                            commitCard(detailItem, hash: hash)
                         }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 20)
-                }
-            case .error(let error):
-                ContentUnavailableView {
-                    Label(StringLiterals.Feed.errorOccurred, systemImage: "exclamationmark.triangle")
-                } description: {
-                    Text(error.localizedDescription)
-                } actions: {
-                    Button(StringLiterals.Feed.retry) {
-                        Task { await viewModel.load(from: item, feedAISummary: feedAISummary, feedCategory: feedCategory) }
                     }
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 20)
         }
         .background(AppTheme.Colors.background)
         .navigationBarTitleDisplayMode(.inline)
@@ -60,7 +44,7 @@ struct RepoDetailView: View {
             }
         }
         .task {
-            await viewModel.load(from: item, feedAISummary: feedAISummary, feedCategory: feedCategory)
+            await viewModel.load(from: item)
         }
     }
 
@@ -74,34 +58,6 @@ struct RepoDetailView: View {
                 .foregroundStyle(AppTheme.Colors.textMeta)
         }
         .frame(maxWidth: .infinity)
-    }
-
-    private var aiSummarySection: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Group {
-                switch viewModel.repoAISummary {
-                case .loading:
-                    AISummarySkeleton()
-                case .loaded(let summary):
-                    AISummaryCardView(summary: summary)
-                case .error(let error):
-                    AIErrorInlineView(error: error)
-                }
-            }
-            .padding(14)
-
-            if !viewModel.categoryDistribution.isEmpty {
-                ActivityBarView(distribution: viewModel.categoryDistribution)
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 10)
-            }
-        }
-        .background(AppTheme.Colors.aiCardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(AppTheme.Colors.border, lineWidth: 1)
-        )
     }
 
     private func commitCard(_ item: RepoDetailItem, hash: String) -> some View {
@@ -123,7 +79,7 @@ struct RepoDetailView: View {
             }
             .padding(16)
 
-            // AI summary for commit
+            // AI description for commit
             switch viewModel.itemAISummaries[item.id] ?? .loading {
             case .loading:
                 AISummarySkeleton()
@@ -134,8 +90,8 @@ struct RepoDetailView: View {
                     .overlay(alignment: .top) {
                         Rectangle().fill(AppTheme.Colors.border.opacity(0.5)).frame(height: 1)
                     }
-            case .loaded(let summary):
-                AISummaryCardView(summary: summary, showDisclaimer: false)
+            case .loaded(let description):
+                CommitAIDescriptionView(description: description)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                     .frame(maxWidth: .infinity, alignment: .leading)
