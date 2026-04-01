@@ -8,6 +8,7 @@ struct RepoDetailView: View {
         ScrollView {
             VStack(spacing: 16) {
                 repoHeader
+                onepagerSection
 
                 if viewModel.detailItems.isEmpty {
                     ProgressView()
@@ -45,6 +46,35 @@ struct RepoDetailView: View {
         }
         .task {
             await viewModel.load(from: item)
+        }
+    }
+
+    @ViewBuilder
+    private var onepagerSection: some View {
+        switch viewModel.repoMetadata {
+        case .loading:
+            VStack(spacing: 8) {
+                SkeletonBlock(width: 200, height: 16)
+                SkeletonBlock(height: 60)
+                SkeletonBlock(width: 120, height: 16)
+            }
+            .padding(16)
+            .background(AppTheme.Colors.cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(AppTheme.Colors.border, lineWidth: 1)
+            )
+        case .loaded(let metadata):
+            RepoOnepagerView(
+                repoName: item.repositoryName,
+                metadata: metadata,
+                prCount: item.prCount,
+                commitCount: item.commitCount,
+                aiAnalysis: viewModel.onepagerSummary
+            )
+        case .error:
+            EmptyView()
         }
     }
 
