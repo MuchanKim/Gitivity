@@ -5,10 +5,8 @@ nonisolated struct ActivityPromptBuilder: Sendable {
     func buildRepoSummaryPrompt(
         repoName: String,
         pullRequests: [PullRequest],
-        commits: [Commit]
+        categorizedCommits: [CommitCategory: [String]]
     ) -> String {
-        let topCommits = selectTopCommits(commits, count: 2)
-
         var parts: [String] = []
         parts.append("[레포지토리] \(repoName)")
 
@@ -18,42 +16,33 @@ nonisolated struct ActivityPromptBuilder: Sendable {
             for pr in pullRequests.prefix(5) {
                 let status = pr.mergedAt != nil ? "머지됨" : "진행중"
                 parts.append("(\(status)) \(pr.title)")
-                if !pr.body.isEmpty {
-                    let trimmed = String(pr.body.prefix(200))
-                    parts.append("  설명: \(trimmed)")
-                }
             }
         }
 
-        if !topCommits.isEmpty {
+        if !categorizedCommits.isEmpty {
             parts.append("")
-            parts.append("[주요 변경 커밋]")
-            for commit in topCommits {
-                let firstLine = commit.message.components(separatedBy: "\n").first ?? commit.message
-                parts.append("\(firstLine) (+\(commit.additions) -\(commit.deletions))")
+            parts.append("[변경 사항]")
+            for (category, messages) in categorizedCommits.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
+                let topMessages = messages.prefix(3).map {
+                    $0.components(separatedBy: "\n").first ?? $0
+                }
+                parts.append("\(category.rawValue): \(topMessages.joined(separator: ", "))")
             }
         }
 
         parts.append("")
-        if !topCommits.isEmpty {
-            parts.append("""
-            위 주요 변경 커밋 \(topCommits.count)개를 기반으로 핵심 변경사항을 요약해주세요.
-            출력 형식: 정확히 2줄. 각 줄은 "· "로 시작. 마크다운 금지.
-            톤: 보고서 (~되었습니다)
-            예시:
-            · 에러 핸들링 구조가 도메인별 독립 로딩으로 전환되었습니다.
-            · FoundationModels API 안정화 및 구조화된 로깅이 추가되었습니다.
-            """)
-        } else {
-            parts.append("""
-            위 활동의 핵심 변경사항을 요약해주세요.
-            출력 형식: 정확히 2줄. 각 줄은 "· "로 시작. 마크다운 금지.
-            톤: 보고서 (~되었습니다)
-            예시:
-            · 에러 핸들링 구조가 도메인별 독립 로딩으로 전환되었습니다.
-            · FoundationModels API 안정화 및 구조화된 로깅이 추가되었습니다.
-            """)
-        }
+        parts.append("""
+        위 최근 작업을 자연스러운 한국어 문단으로 요약해주세요.
+        규칙:
+        - 순수 텍스트. 마크다운 금지. 줄바꿈 금지. 한 문단으로 작성.
+        - 레포지토리 이름, 소유자 이름을 언급하지 마세요. UI에 이미 표시됩니다.
+        - 주관적 평가 금지. "매력적으로", "효율적으로 개선", "안정성을 높이는" 등 의견 표현 금지. 무엇이 변경되었는지(What)만 서술.
+        - PR이 있으면 PR 단위로 어떤 작업이 완료/진행되었는지 서술.
+        - 커밋은 카테고리별로 묶어서 서술.
+        - 핵심 내용을 3~4문장으로 압축. 너무 길게 쓰지 마세요.
+        - 톤: 보고서 (~되었습니다, ~이루어졌습니다)
+        예시: "에러 핸들링 구조를 도메인별 독립 로딩으로 전환하고 Skeleton UI를 도입하는 작업이 머지되었습니다. FoundationModels API 연동 코드 안정화 및 로깅 인프라가 추가되었습니다."
+        """)
 
         return parts.joined(separator: "\n")
     }
@@ -86,10 +75,11 @@ nonisolated struct ActivityPromptBuilder: Sendable {
         parts.append("""
         이 PR의 핵심 변경사항을 요약해주세요.
         출력 형식: 정확히 2줄. 각 줄은 "· "로 시작. 마크다운 금지.
+        관련 변경을 묶어서 한 줄에 2개씩 포함.
         톤: 보고서 (~되었습니다)
         예시:
-        · 전체 화면 단일 로딩에서 도메인별 독립 로딩으로 전환되었습니다.
-        · Skeleton UI와 인라인 에러 피드백이 도입되었습니다.
+        · 도메인별 독립 로딩 전환 및 Skeleton UI가 도입되었습니다.
+        · AI 요약 파이프라인 개선과 에러 핸들링이 추가되었습니다.
         """)
 
         return parts.joined(separator: "\n")

@@ -79,19 +79,22 @@ final class FeedViewModel {
         await withTaskGroup(of: (String, Result<String, Error>, [CommitCategory: Int]).self) { group in
             for item in items {
                 group.addTask {
-                    // Classify commits
+                    // 1. Classify commits (항상 수행 — ActivityBarView용)
                     let messages = item.commits.map(\.message)
                     let categories = await classifier.classifyBatch(messages)
+
                     var distribution: [CommitCategory: Int] = [:]
-                    for category in categories {
+                    var categorizedCommits: [CommitCategory: [String]] = [:]
+                    for (message, category) in zip(messages, categories) {
                         distribution[category, default: 0] += 1
+                        categorizedCommits[category, default: []].append(message)
                     }
 
-                    // Generate AI summary
+                    // 2. AI summary — PR + 카테고리 데이터 전달
                     let prompt = promptBuilder.buildRepoSummaryPrompt(
                         repoName: item.repositoryName,
                         pullRequests: item.pullRequests,
-                        commits: item.commits
+                        categorizedCommits: categorizedCommits
                     )
                     do {
                         let summary = try await provider.summarize(prompt: prompt)
@@ -114,4 +117,5 @@ final class FeedViewModel {
             }
         }
     }
+
 }
