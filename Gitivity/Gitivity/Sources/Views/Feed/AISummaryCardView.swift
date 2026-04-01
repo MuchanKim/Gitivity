@@ -17,7 +17,7 @@ struct AISummaryCardView: View {
                 .tracking(0.5)
 
             let cleaned = MarkdownStripper.strip(summary)
-            let lines = Array(cleaned.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }.prefix(2))
+            let lines = cleaned.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
 
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
