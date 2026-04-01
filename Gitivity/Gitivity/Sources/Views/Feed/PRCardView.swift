@@ -20,14 +20,18 @@ struct PRCardView: View {
                         Rectangle().fill(AppTheme.Colors.border.opacity(0.5)).frame(height: 1)
                     }
             case .loaded(let summary):
-                AISummaryCardView(summary: summary, showDisclaimer: false)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(AppTheme.Colors.aiCardBackground.opacity(0.6))
-                    .overlay(alignment: .top) {
-                        Rectangle().fill(AppTheme.Colors.border.opacity(0.5)).frame(height: 1)
-                    }
+                AISummaryCardView(
+                    summary: summary,
+                    showDisclaimer: false,
+                    extraCount: max(0, item.commits.count - 2)
+                )
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(AppTheme.Colors.aiCardBackground.opacity(0.6))
+                .overlay(alignment: .top) {
+                    Rectangle().fill(AppTheme.Colors.border.opacity(0.5)).frame(height: 1)
+                }
             case .error(let error):
                 AIErrorInlineView(error: error)
                     .padding(.horizontal, 16)
