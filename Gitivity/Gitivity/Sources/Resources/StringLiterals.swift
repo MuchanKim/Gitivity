@@ -26,6 +26,7 @@ enum StringLiterals {
     enum AI {
         static let summaryLabel = "✦ AI 요약"
         static let disclaimer = "AI가 생성한 요약입니다"
+        static let onepagerLabel = "✦ AI 분석"
 
         // Unavailable — deviceNotEligible
         static let deviceNotEligibleTitle = "AI 기능을 지원하지 않는\n기기입니다"
