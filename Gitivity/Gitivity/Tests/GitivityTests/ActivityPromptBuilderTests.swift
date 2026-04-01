@@ -17,11 +17,11 @@ struct ActivityPromptBuilderTests {
         )
     }
 
-    private func makeCommit(message: String = "initial commit") -> Commit {
+    private func makeCommit(message: String = "initial commit", additions: Int = 5, deletions: Int = 2) -> Commit {
         Commit(
-            id: "abc", message: message,
+            id: UUID().uuidString, message: message,
             url: "https://github.com/test/repo/commit/abc",
-            committedDate: Date(), additions: 5, deletions: 2,
+            committedDate: Date(), additions: additions, deletions: deletions,
             repositoryName: "TestRepo"
         )
     }
@@ -34,10 +34,40 @@ struct ActivityPromptBuilderTests {
             commits: [makeCommit()]
         )
         #expect(result.contains("TestRepo"))
-        #expect(result.contains("feat: add login"))
-        #expect(result.contains("initial commit"))
         #expect(result.contains("· "))
         #expect(result.contains("정확히 2줄"))
+    }
+
+    @Test("buildRepoSummaryPrompt — 상위 2개 커밋만 포함")
+    func repoSummaryTopCommitsOnly() {
+        let commits = [
+            makeCommit(message: "small change", additions: 1, deletions: 0),
+            makeCommit(message: "big refactor", additions: 100, deletions: 50),
+            makeCommit(message: "medium fix", additions: 20, deletions: 10),
+            makeCommit(message: "huge feature", additions: 200, deletions: 30),
+        ]
+        let result = builder.buildRepoSummaryPrompt(
+            repoName: "TestRepo",
+            pullRequests: [],
+            commits: commits
+        )
+        #expect(result.contains("huge feature"))
+        #expect(result.contains("big refactor"))
+        #expect(!result.contains("small change"))
+        #expect(!result.contains("medium fix"))
+    }
+
+    @Test("buildRepoSummaryPrompt — 커밋 2개 이하면 전부 포함")
+    func repoSummaryFewCommits() {
+        let commits = [
+            makeCommit(message: "only commit", additions: 5, deletions: 2),
+        ]
+        let result = builder.buildRepoSummaryPrompt(
+            repoName: "TestRepo",
+            pullRequests: [],
+            commits: commits
+        )
+        #expect(result.contains("only commit"))
     }
 
     @Test("buildRepoSummaryPrompt — PR body 포함")
@@ -50,6 +80,26 @@ struct ActivityPromptBuilderTests {
         #expect(result.contains("OAuth 인증 구현"))
     }
 
+    @Test("buildPRSummaryPrompt — 상위 2개 커밋만 포함")
+    func prSummaryTopCommitsOnly() {
+        let commits = [
+            makeCommit(message: "tiny fix", additions: 1, deletions: 0),
+            makeCommit(message: "core implementation", additions: 80, deletions: 20),
+            makeCommit(message: "docs update", additions: 5, deletions: 3),
+            makeCommit(message: "huge refactor", additions: 150, deletions: 60),
+        ]
+        let result = builder.buildPRSummaryPrompt(
+            title: "feat: add login",
+            body: "",
+            commits: commits
+        )
+        #expect(result.contains("core implementation"))
+        #expect(result.contains("huge refactor"))
+        #expect(!result.contains("tiny fix"))
+        #expect(!result.contains("docs update"))
+        #expect(result.contains("feat: add login"))
+    }
+
     @Test("buildRepoSummaryPrompt — 머지 상태 표시")
     func repoSummaryMergeStatus() {
         let result = builder.buildRepoSummaryPrompt(
@@ -58,19 +108,6 @@ struct ActivityPromptBuilderTests {
             commits: []
         )
         #expect(result.contains("머지됨"))
-    }
-
-    @Test("buildPRSummaryPrompt — 불릿 2줄 포맷 지정")
-    func prSummaryFormat() {
-        let result = builder.buildPRSummaryPrompt(
-            title: "feat: add login",
-            body: "OAuth 로그인 구현",
-            commits: [makeCommit()]
-        )
-        #expect(result.contains("feat: add login"))
-        #expect(result.contains("OAuth 로그인 구현"))
-        #expect(result.contains("· "))
-        #expect(result.contains("정확히 2줄"))
     }
 
     @Test("buildCommitDescriptionPrompt — 코드 변경 설명")

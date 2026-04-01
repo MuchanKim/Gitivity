@@ -1,18 +1,21 @@
 import Foundation
 
 nonisolated struct ActivityPromptBuilder: Sendable {
+
     func buildRepoSummaryPrompt(
         repoName: String,
         pullRequests: [PullRequest],
         commits: [Commit]
     ) -> String {
+        let topCommits = selectTopCommits(commits, count: 2)
+
         var parts: [String] = []
         parts.append("[레포지토리] \(repoName)")
 
         if !pullRequests.isEmpty {
             parts.append("")
             parts.append("[Pull Requests]")
-            for pr in pullRequests.prefix(10) {
+            for pr in pullRequests.prefix(5) {
                 let status = pr.mergedAt != nil ? "머지됨" : "진행중"
                 parts.append("(\(status)) \(pr.title)")
                 if !pr.body.isEmpty {
@@ -22,24 +25,35 @@ nonisolated struct ActivityPromptBuilder: Sendable {
             }
         }
 
-        if !commits.isEmpty {
+        if !topCommits.isEmpty {
             parts.append("")
-            parts.append("[Commits]")
-            for commit in commits.prefix(15) {
+            parts.append("[주요 변경 커밋]")
+            for commit in topCommits {
                 let firstLine = commit.message.components(separatedBy: "\n").first ?? commit.message
-                parts.append(firstLine)
+                parts.append("\(firstLine) (+\(commit.additions) -\(commit.deletions))")
             }
         }
 
         parts.append("")
-        parts.append("""
-        위 활동의 핵심 변경사항을 불릿 형식으로 요약해주세요.
-        출력 형식: 정확히 2줄. 각 줄은 "· "로 시작. 마크다운 금지.
-        톤: 보고서 (~되었습니다)
-        예시:
-        · 에러 핸들링 구조가 도메인별 독립 로딩으로 전환되었습니다.
-        · FoundationModels API 안정화 및 구조화된 로깅이 추가되었습니다.
-        """)
+        if !topCommits.isEmpty {
+            parts.append("""
+            위 주요 변경 커밋 \(topCommits.count)개를 기반으로 핵심 변경사항을 요약해주세요.
+            출력 형식: 정확히 2줄. 각 줄은 "· "로 시작. 마크다운 금지.
+            톤: 보고서 (~되었습니다)
+            예시:
+            · 에러 핸들링 구조가 도메인별 독립 로딩으로 전환되었습니다.
+            · FoundationModels API 안정화 및 구조화된 로깅이 추가되었습니다.
+            """)
+        } else {
+            parts.append("""
+            위 활동의 핵심 변경사항을 요약해주세요.
+            출력 형식: 정확히 2줄. 각 줄은 "· "로 시작. 마크다운 금지.
+            톤: 보고서 (~되었습니다)
+            예시:
+            · 에러 핸들링 구조가 도메인별 독립 로딩으로 전환되었습니다.
+            · FoundationModels API 안정화 및 구조화된 로깅이 추가되었습니다.
+            """)
+        }
 
         return parts.joined(separator: "\n")
     }
@@ -49,6 +63,8 @@ nonisolated struct ActivityPromptBuilder: Sendable {
         body: String,
         commits: [Commit]
     ) -> String {
+        let topCommits = selectTopCommits(commits, count: 2)
+
         var parts: [String] = []
         parts.append("[Pull Request] \(title)")
 
@@ -57,18 +73,18 @@ nonisolated struct ActivityPromptBuilder: Sendable {
             parts.append("[설명] \(trimmed)")
         }
 
-        if !commits.isEmpty {
+        if !topCommits.isEmpty {
             parts.append("")
-            parts.append("[포함된 커밋]")
-            for commit in commits.prefix(10) {
+            parts.append("[주요 변경 커밋]")
+            for commit in topCommits {
                 let firstLine = commit.message.components(separatedBy: "\n").first ?? commit.message
-                parts.append(firstLine)
+                parts.append("\(firstLine) (+\(commit.additions) -\(commit.deletions))")
             }
         }
 
         parts.append("")
         parts.append("""
-        이 PR의 기술적 변경사항을 불릿 형식으로 요약해주세요.
+        이 PR의 핵심 변경사항을 요약해주세요.
         출력 형식: 정확히 2줄. 각 줄은 "· "로 시작. 마크다운 금지.
         톤: 보고서 (~되었습니다)
         예시:
@@ -89,5 +105,11 @@ nonisolated struct ActivityPromptBuilder: Sendable {
 
         Commit: \(message)
         """
+    }
+
+    // MARK: - Private
+
+    private func selectTopCommits(_ commits: [Commit], count: Int) -> [Commit] {
+        Array(commits.sorted { ($0.additions + $0.deletions) > ($1.additions + $1.deletions) }.prefix(count))
     }
 }
