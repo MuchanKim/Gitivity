@@ -128,7 +128,7 @@ final class RepoDetailViewModel {
             for commit in commits {
                 group.addTask {
                     let category = await classifier.classify(commit.message)
-                    let prompt = promptBuilder.buildCommitTranslationPrompt(commit.message)
+                    let prompt = promptBuilder.buildCommitDescriptionPrompt(commit.message)
                     var translation: String?
                     do {
                         translation = try await FoundationProvider().summarize(prompt: prompt)
