@@ -6,12 +6,22 @@ import os
 final class RepoDetailViewModel {
     private(set) var detailItems: [RepoDetailItem] = []
     private(set) var itemAISummaries: [String: LoadingState<String>] = [:]
+    private(set) var repoMetadata: LoadingState<RepositoryMetadata> = .loading
+    private(set) var onepagerSummary: LoadingState<String> = .loading
 
     private let promptBuilder = ActivityPromptBuilder()
     private let classifier = CommitClassifier(aiProvider: FoundationProvider())
 
     func load(from timelineItem: TimelineItem) async {
         let provider = FoundationProvider()
+
+        // Fetch repo metadata in parallel with detail items
+        async let metadataTask: Void = loadRepoMetadata(
+            repoName: timelineItem.repositoryName,
+            timelineItem: timelineItem,
+            provider: provider
+        )
+
         var items: [RepoDetailItem] = []
 
         // PR items — build immediately
@@ -67,6 +77,71 @@ final class RepoDetailViewModel {
             timelineItem: timelineItem,
             provider: provider
         )
+
+        await metadataTask
+    }
+
+    private func loadRepoMetadata(
+        repoName: String,
+        timelineItem: TimelineItem,
+        provider: FoundationProvider
+    ) async {
+        let keychain = KeychainService()
+        guard let token = try? keychain.read(key: "github_token") else {
+            repoMetadata = .error(AuthError.noCode)
+            return
+        }
+
+        let components = repoName.split(separator: "/")
+        guard components.count == 2 else {
+            repoMetadata = .error(GitHubAPIError.invalidResponse)
+            return
+        }
+
+        let api = GitHubGraphQLService(accessToken: token)
+
+        let metadata: RepositoryMetadata
+        do {
+            metadata = try await api.fetchRepoMetadata(
+                owner: String(components[0]),
+                name: String(components[1])
+            )
+            repoMetadata = .loaded(metadata)
+        } catch {
+            AILogger.generation.error("[RepoDetail] metadata fetch failed: \(error)")
+            repoMetadata = .error(error)
+            onepagerSummary = .error(error)
+            return
+        }
+
+        // Generate onepager AI summary (metadata 성공 후에만 시도)
+        do {
+            let recentActivity = buildRecentActivitySummary(from: timelineItem)
+            let prompt = promptBuilder.buildRepoOnepagerPrompt(
+                repoName: repoName,
+                description: metadata.description,
+                readmeExcerpt: metadata.readmeExcerpt,
+                languages: metadata.languages,
+                recentActivity: recentActivity
+            )
+            let analysis = try await provider.summarize(prompt: prompt)
+            onepagerSummary = .loaded(analysis)
+        } catch {
+            AILogger.generation.error("[RepoDetail] onepager AI failed: \(error)")
+            onepagerSummary = .error(error)
+        }
+    }
+
+    private func buildRecentActivitySummary(from item: TimelineItem) -> String {
+        var parts: [String] = []
+        if !item.pullRequests.isEmpty {
+            let prTitles = item.pullRequests.prefix(3).map(\.title).joined(separator: ", ")
+            parts.append("PR \(item.pullRequests.count)건: \(prTitles)")
+        }
+        if !item.commits.isEmpty {
+            parts.append("커밋 \(item.commits.count)건")
+        }
+        return parts.isEmpty ? "최근 활동 없음" : parts.joined(separator: ". ")
     }
 
     private func generateAISummaries(
