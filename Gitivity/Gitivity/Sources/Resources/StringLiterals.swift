@@ -97,4 +97,16 @@ enum StringLiterals {
         static let merged = "MERGED"
         static let commit = "COMMIT"
     }
+
+    enum PRDetail {
+        static let body = "설명"
+        static let commits = "커밋"
+        static let showOriginal = "원문 보기"
+        static let showTranslation = "번역 보기"
+        static let showRemainingCommits = "나머지 "
+        static let countSuffix = "개 보기"
+        static let collapseCommits = "접기"
+        static let translatedByAI = "AI가 번역한 내용입니다"
+        static let files = "파일"
+    }
 }

@@ -50,6 +50,7 @@ enum AppTheme {
         // Small
         static let label = Font.system(size: 11, weight: .bold)
         static let legend = Font.system(size: 11)
+        static let monoCaption = Font.system(size: 11, design: .monospaced)
         static let caption = Font.system(size: 10)
         static let badgeTitle = Font.system(size: 10, weight: .bold)
         static let badgeSmall = Font.system(size: 9, weight: .bold)
