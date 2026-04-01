@@ -159,4 +159,21 @@ struct ActivityPromptBuilderTests {
         #expect(!result.contains("[README]"))
         #expect(result.contains("An app"))
     }
+
+    @Test("buildTranslationPrompt — 번역 프롬프트 포맷")
+    func translationPromptFormat() {
+        let result = builder.buildTranslationPrompt(
+            "This PR adds OAuth authentication with token refresh."
+        )
+        #expect(result.contains("OAuth authentication"))
+        #expect(result.contains("한국어"))
+        #expect(result.contains("마크다운"))
+    }
+
+    @Test("buildTranslationPrompt — 긴 텍스트 truncation")
+    func translationPromptTruncation() {
+        let longText = String(repeating: "A", count: 5000)
+        let result = builder.buildTranslationPrompt(longText)
+        #expect(result.count < 4000)
+    }
 }

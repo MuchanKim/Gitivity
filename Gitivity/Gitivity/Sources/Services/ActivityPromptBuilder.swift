@@ -148,6 +148,21 @@ nonisolated struct ActivityPromptBuilder: Sendable {
         return parts.joined(separator: "\n")
     }
 
+    func buildTranslationPrompt(_ text: String) -> String {
+        let truncated = String(text.prefix(3000))
+        return """
+        다음 영문 텍스트를 한국어로 번역해주세요.
+        규칙:
+        - 기술 용어(OAuth, API, token 등)는 원문 유지
+        - 마크다운 서식이 있으면 그대로 유지
+        - 자연스러운 한국어로 번역 (직역 금지)
+        - 번역문만 출력. 설명이나 주석 금지.
+
+        원문:
+        \(truncated)
+        """
+    }
+
     // MARK: - Private
 
     private func selectTopCommits(_ commits: [Commit], count: Int) -> [Commit] {
