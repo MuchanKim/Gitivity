@@ -117,4 +117,46 @@ struct ActivityPromptBuilderTests {
         #expect(result.contains("코드베이스"))
         #expect(result.contains("1줄"))
     }
+
+    @Test("buildRepoOnepagerPrompt — 기본 포맷")
+    func repoOnepagerFormat() {
+        let result = builder.buildRepoOnepagerPrompt(
+            repoName: "MuchanKim/Gitivity",
+            description: "GitHub activity viewer",
+            readmeExcerpt: "# Gitivity\nAn iOS app that summarizes your GitHub activity.",
+            languages: ["Swift", "JavaScript"],
+            recentActivity: "최근 AI 요약 파이프라인 개선, 에러 핸들링 구조 변경"
+        )
+        #expect(result.contains("MuchanKim/Gitivity"))
+        #expect(result.contains("GitHub activity viewer"))
+        #expect(result.contains("Gitivity"))
+        #expect(result.contains("Swift"))
+        #expect(result.contains("3줄"))
+    }
+
+    @Test("buildRepoOnepagerPrompt — description 없을 때")
+    func repoOnepagerNoDescription() {
+        let result = builder.buildRepoOnepagerPrompt(
+            repoName: "MuchanKim/Gitivity",
+            description: nil,
+            readmeExcerpt: "# Gitivity\nSome readme content.",
+            languages: ["Swift"],
+            recentActivity: "커밋 5건"
+        )
+        #expect(!result.contains("[설명]"))
+        #expect(result.contains("Gitivity"))
+    }
+
+    @Test("buildRepoOnepagerPrompt — README 없을 때")
+    func repoOnepagerNoReadme() {
+        let result = builder.buildRepoOnepagerPrompt(
+            repoName: "MuchanKim/Gitivity",
+            description: "An app",
+            readmeExcerpt: nil,
+            languages: [],
+            recentActivity: "커밋 3건"
+        )
+        #expect(!result.contains("[README]"))
+        #expect(result.contains("An app"))
+    }
 }

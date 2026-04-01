@@ -107,6 +107,47 @@ nonisolated struct ActivityPromptBuilder: Sendable {
         """
     }
 
+    func buildRepoOnepagerPrompt(
+        repoName: String,
+        description: String?,
+        readmeExcerpt: String?,
+        languages: [String],
+        recentActivity: String
+    ) -> String {
+        var parts: [String] = []
+        parts.append("[레포지토리] \(repoName)")
+
+        if let description, !description.isEmpty {
+            parts.append("[설명] \(description)")
+        }
+
+        if !languages.isEmpty {
+            parts.append("[기술 스택] \(languages.joined(separator: ", "))")
+        }
+
+        if let readme = readmeExcerpt, !readme.isEmpty {
+            let trimmed = String(readme.prefix(1500))
+            parts.append("")
+            parts.append("[README 발췌]")
+            parts.append(trimmed)
+        }
+
+        parts.append("")
+        parts.append("[최근 활동] \(recentActivity)")
+
+        parts.append("")
+        parts.append("""
+        위 정보를 기반으로 이 프로젝트가 무엇인지, 최근 어떤 작업에 집중하고 있는지 설명해주세요.
+        출력 형식: 정확히 3줄. 마크다운 금지. 순수 텍스트.
+        1줄: 프로젝트가 무엇인지 (한 문장)
+        2줄: 주요 기술 스택과 특징
+        3줄: 최근 집중하고 있는 작업
+        톤: 보고서 (~입니다, ~있습니다)
+        """)
+
+        return parts.joined(separator: "\n")
+    }
+
     // MARK: - Private
 
     private func selectTopCommits(_ commits: [Commit], count: Int) -> [Commit] {
