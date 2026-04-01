@@ -41,10 +41,13 @@ final class RepoDetailViewModel {
                 id: pr.id,
                 type: .pullRequest(number: Self.extractPRNumber(pr.title), merged: pr.mergedAt != nil),
                 title: pr.title,
+                body: pr.body,
+                url: pr.url,
                 aiSummary: nil,
                 timestamp: pr.createdAt,
                 additions: pr.additions,
                 deletions: pr.deletions,
+                changedFiles: pr.changedFiles,
                 commits: classifiedCommits
             ))
         }
@@ -61,10 +64,13 @@ final class RepoDetailViewModel {
                 id: commit.id,
                 type: .commit(hash: String(commit.id.prefix(7))),
                 title: commit.message.components(separatedBy: "\n").first ?? commit.message,
+                body: "",
+                url: commit.url,
                 aiSummary: nil,
                 timestamp: commit.committedDate,
                 additions: commit.additions,
                 deletions: commit.deletions,
+                changedFiles: 0,
                 commits: []
             ))
         }
