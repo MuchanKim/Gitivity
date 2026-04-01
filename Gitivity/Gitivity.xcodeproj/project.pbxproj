@@ -39,6 +39,7 @@
 				Tests/GitivityTests/AuthServiceTests.swift,
 				Tests/GitivityTests/CommitClassifierTests.swift,
 				Tests/GitivityTests/KeychainServiceTests.swift,
+				Tests/GitivityTests/LanguageDetectorTests.swift,
 				Tests/GitivityTests/LoadingStateTests.swift,
 				Tests/GitivityTests/MarkdownStripperTests.swift,
 				Tests/GitivityUITests/GitivityUITests.swift,
@@ -53,6 +54,7 @@
 				Tests/GitivityTests/AuthServiceTests.swift,
 				Tests/GitivityTests/CommitClassifierTests.swift,
 				Tests/GitivityTests/KeychainServiceTests.swift,
+				Tests/GitivityTests/LanguageDetectorTests.swift,
 				Tests/GitivityTests/LoadingStateTests.swift,
 				Tests/GitivityTests/MarkdownStripperTests.swift,
 			);
