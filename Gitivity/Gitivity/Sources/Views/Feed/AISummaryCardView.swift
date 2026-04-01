@@ -3,10 +3,14 @@ import SwiftUI
 struct AISummaryCardView: View {
     let summary: String
     let showDisclaimer: Bool
+    var maxLines: Int = 2
+    var extraCount: Int = 0
 
-    init(summary: String, showDisclaimer: Bool = true) {
+    init(summary: String, showDisclaimer: Bool = true, maxLines: Int = 2, extraCount: Int = 0) {
         self.summary = summary
         self.showDisclaimer = showDisclaimer
+        self.maxLines = maxLines
+        self.extraCount = extraCount
     }
 
     var body: some View {
@@ -17,12 +21,21 @@ struct AISummaryCardView: View {
                 .tracking(0.5)
 
             let cleaned = MarkdownStripper.strip(summary)
-            let lines = cleaned.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+            let allLines = cleaned.components(separatedBy: "\n").filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }
+            let lines = Array(allLines.prefix(maxLines))
 
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
                     bulletLine(line)
                 }
+            }
+
+            if extraCount > 0 {
+                Text("그 외 \(extraCount)건")
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundStyle(AppTheme.Colors.textTertiary)
+                    .padding(.leading, 20)
+                    .padding(.top, 2)
             }
 
             if showDisclaimer {
