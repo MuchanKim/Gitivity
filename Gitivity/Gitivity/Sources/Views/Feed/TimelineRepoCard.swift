@@ -78,10 +78,14 @@ struct TimelineRepoCard: View {
                     .padding(.horizontal, 14)
                     .background(AppTheme.Colors.aiCardBackground)
             case .loaded(let summary):
-                AISummaryCardView(summary: summary, showDisclaimer: false)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 14)
-                    .background(AppTheme.Colors.aiCardBackground)
+                AISummaryCardView(
+                    summary: summary,
+                    showDisclaimer: false,
+                    extraCount: max(0, item.commitCount - 2)
+                )
+                .padding(.vertical, 12)
+                .padding(.horizontal, 14)
+                .background(AppTheme.Colors.aiCardBackground)
             case .error(let error):
                 AIErrorInlineView(error: error)
                     .padding(.vertical, 12)
