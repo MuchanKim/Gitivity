@@ -5,6 +5,7 @@ import Foundation
 final class ProfileViewModel {
     private(set) var profileState: LoadingState<ProfileData> = .loading
     private(set) var categoryState: LoadingState<[CommitCategory: Int]> = .loading
+    private(set) var badges: [DeveloperBadge] = []
     private(set) var isRetrying = false
 
     private let keychain = KeychainService()
@@ -28,24 +29,31 @@ final class ProfileViewModel {
 
         do {
             let now = Date()
-            let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: now)!
+            let ninetyDaysAgo = Calendar.current.date(byAdding: .day, value: -90, to: now)!
 
             async let viewer = api.fetchViewer()
-            async let contribs = api.fetchContributions(from: thirtyDaysAgo, to: now)
-            async let prs = api.fetchPullRequests(limit: 20)
-            async let commits = api.fetchCommits(limit: 30)
+            async let stats = api.fetchContributionStats(from: ninetyDaysAgo, to: now)
+            async let stars = api.fetchTotalStars()
+            async let commits = api.fetchCommits(limit: 100)
 
-            let (fetchedUser, fetchedContribs, fetchedPRs, fetchedCommits) = try await (viewer, contribs, prs, commits)
+            let (fetchedUser, fetchedStats, fetchedStars, fetchedCommits) = try await (viewer, stats, stars, commits)
 
             let data = ProfileData(
                 user: fetchedUser,
-                contributions: fetchedContribs,
-                totalCommits: fetchedCommits.count,
-                totalPRs: fetchedPRs.count,
-                activeRepos: Set(fetchedCommits.map(\.repositoryName).filter { !$0.isEmpty }).count
+                contributions: fetchedStats.contributions,
+                totalCommits: fetchedStats.totalCommits,
+                totalPRs: fetchedStats.totalPRs,
+                totalReviews: fetchedStats.totalReviews,
+                totalIssues: fetchedStats.totalIssues,
+                activeRepos: Set(fetchedCommits.map(\.repositoryName).filter { !$0.isEmpty }).count,
+                totalStars: fetchedStars.totalStars,
+                topRepoName: fetchedStars.topRepoName,
+                topRepoStars: fetchedStars.topRepoStars,
+                commits: fetchedCommits
             )
             isRetrying = false
             profileState = .loaded(data)
+            badges = BadgeCalculator.calculate(from: data)
 
             // AI classification independently
             categoryState = .loading
