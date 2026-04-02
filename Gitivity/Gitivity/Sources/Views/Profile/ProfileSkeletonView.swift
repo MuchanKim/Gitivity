@@ -2,27 +2,40 @@ import SwiftUI
 
 struct ProfileSkeletonView: View {
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 14) {
             titleRow
             avatarSection
-            statsSection
+            donutChartSkeleton
+            starsCardSkeleton
             contributionGridSkeleton
-            activityClassificationSkeleton
         }
         .padding(.horizontal, 18)
         .padding(.bottom, 20)
     }
 
     private var titleRow: some View {
-        HStack {
-            Text(StringLiterals.Profile.title)
-                .font(AppTheme.Fonts.screenTitle)
-                .foregroundStyle(.white)
-            Spacer()
-            SkeletonBlock(width: 32, height: 32)
-                .clipShape(Circle())
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(StringLiterals.Profile.title)
+                    .font(AppTheme.Fonts.screenTitle)
+                    .tracking(-0.5)
+                    .foregroundStyle(AppTheme.Colors.textBright)
+                Spacer()
+                SkeletonBlock(width: 32, height: 32)
+                    .clipShape(Circle())
+            }
+
+            RoundedRectangle(cornerRadius: 1)
+                .fill(
+                    LinearGradient(
+                        colors: [AppTheme.Colors.primary, AppTheme.Colors.primaryLight],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(width: 32, height: 2)
         }
-        .padding(.top, 4)
+        .padding(.top, 14)
     }
 
     private var avatarSection: some View {
@@ -36,49 +49,51 @@ struct ProfileSkeletonView: View {
                 SkeletonBlock(width: 100, height: 16)
                 SkeletonBlock(width: 72, height: 12)
             }
+
+            // Badge pills skeleton
+            HStack(spacing: 6) {
+                SkeletonBlock(width: 80, height: 26)
+                    .clipShape(RoundedRectangle(cornerRadius: 13))
+                SkeletonBlock(width: 80, height: 26)
+                    .clipShape(RoundedRectangle(cornerRadius: 13))
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.top, 8)
         .padding(.bottom, 4)
     }
 
-    private var statsSection: some View {
-        HStack(spacing: 5) {
-            ForEach(0..<3, id: \.self) { _ in
-                statBoxSkeleton
+    private var donutChartSkeleton: some View {
+        VStack(spacing: 14) {
+            // Tab picker skeleton
+            HStack(spacing: 0) {
+                SkeletonBlock(width: .infinity, height: 30)
+            }
+            .frame(maxWidth: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            // Chart + legend
+            HStack(spacing: 16) {
+                // Donut ring skeleton
+                Circle()
+                    .stroke(AppTheme.Colors.border, lineWidth: 14)
+                    .frame(width: 100, height: 100)
+
+                // Legend skeleton
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(0..<4, id: \.self) { _ in
+                        HStack(spacing: 8) {
+                            SkeletonBlock(width: 8, height: 8)
+                                .clipShape(RoundedRectangle(cornerRadius: 2))
+                            SkeletonBlock(width: 30, height: 10)
+                            Spacer()
+                            SkeletonBlock(width: 24, height: 12)
+                        }
+                    }
+                }
             }
         }
-    }
-
-    private var statBoxSkeleton: some View {
-        VStack(spacing: 4) {
-            SkeletonBlock(width: 36, height: 18)
-            SkeletonBlock(width: 48, height: 10)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 14)
-        .background(AppTheme.Colors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(AppTheme.Colors.border, lineWidth: 1)
-        )
-    }
-
-    private var contributionGridSkeleton: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                SkeletonBlock(width: 80, height: 12)
-                Spacer()
-                SkeletonBlock(width: 50, height: 10)
-            }
-            RoundedRectangle(cornerRadius: 4)
-                .fill(AppTheme.Colors.textTertiary.opacity(0.08))
-                .frame(height: 60)
-                .frame(maxWidth: .infinity)
-        }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 14)
+        .padding(16)
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
@@ -87,16 +102,47 @@ struct ProfileSkeletonView: View {
         )
     }
 
-    private var activityClassificationSkeleton: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SkeletonBlock(width: 90, height: 12)
-            RoundedRectangle(cornerRadius: 3)
-                .fill(AppTheme.Colors.textTertiary.opacity(0.08))
-                .frame(height: 6)
-                .frame(maxWidth: .infinity)
+    private var starsCardSkeleton: some View {
+        HStack(spacing: 12) {
+            SkeletonBlock(width: 36, height: 36)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            VStack(alignment: .leading, spacing: 4) {
+                SkeletonBlock(width: 40, height: 8)
+                SkeletonBlock(width: 28, height: 14)
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 4) {
+                SkeletonBlock(width: 80, height: 10)
+                SkeletonBlock(width: 30, height: 10)
+            }
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 14)
+        .padding(14)
+        .background(AppTheme.Colors.cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(AppTheme.Colors.border, lineWidth: 1)
+        )
+    }
+
+    private var contributionGridSkeleton: some View {
+        VStack(spacing: 6) {
+            // Grid placeholder
+            RoundedRectangle(cornerRadius: 4)
+                .fill(AppTheme.Colors.textTertiary.opacity(0.06))
+                .aspectRatio(13.0 / 7.0, contentMode: .fit)
+                .frame(maxWidth: .infinity)
+
+            // Legend skeleton
+            HStack {
+                Spacer()
+                SkeletonBlock(width: 100, height: 8)
+            }
+        }
+        .padding(14)
         .background(AppTheme.Colors.cardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
