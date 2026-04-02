@@ -25,7 +25,10 @@ enum AppTheme {
         static let feat = Color(hex: 0x34D399)
         static let fix = Color(hex: 0xFB923C)
         static let style = Color(hex: 0xA78BFA)
-        static let chore = Color(hex: 0x64748B)
+        static let chore = Color(hex: 0x94A3B8)
+        static let refactor = Color(hex: 0x60A5FA)
+        static let docs = Color(hex: 0xFBBF24)
+        static let test = Color(hex: 0xF472B6)
     }
 
     // MARK: - Typography
