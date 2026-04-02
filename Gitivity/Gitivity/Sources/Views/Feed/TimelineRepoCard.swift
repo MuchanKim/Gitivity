@@ -3,6 +3,8 @@ import SwiftUI
 struct TimelineRepoCard: View {
     let item: TimelineItem
     let isLast: Bool
+    let index: Int
+    let totalCount: Int
     var aiState: LoadingState<String> = .loading
     var categoryState: LoadingState<[CommitCategory: Int]> = .loading
 
@@ -14,16 +16,32 @@ struct TimelineRepoCard: View {
         .padding(.bottom, 16)
     }
 
+    @State private var glowActive = false
+
+    private var isToday: Bool {
+        Calendar.current.isDateInToday(item.lastActivityDate)
+    }
+
     private var timelineDot: some View {
         VStack(spacing: 0) {
             ZStack {
+                if isNewest {
+                    Circle()
+                        .fill(AppTheme.Colors.primary.opacity(0.2))
+                        .frame(width: 18, height: 18)
+                }
                 Circle()
-                    .fill(dotBackgroundColor)
-                    .frame(width: 18, height: 18)
-                Circle()
-                    .fill(dotColor)
-                    .frame(width: 8, height: 8)
+                    .fill(AppTheme.Colors.primary)
+                    .opacity(dotOpacity)
+                    .frame(width: isNewest ? 10 : 8, height: isNewest ? 10 : 8)
+                    .shadow(
+                        color: isToday
+                            ? AppTheme.Colors.primary.opacity(glowActive ? 0.8 : 0.3)
+                            : .clear,
+                        radius: isToday ? (glowActive ? 7 : 2) : 0
+                    )
             }
+            .frame(width: 18, height: 18)
             if !isLast {
                 Rectangle()
                     .fill(AppTheme.Colors.border)
@@ -32,6 +50,19 @@ struct TimelineRepoCard: View {
         }
         .frame(width: 18)
         .padding(.trailing, 4)
+        .onAppear {
+            if isToday {
+                withAnimation(
+                    .easeInOut(duration: isNewest ? 2.5 : 3.0)
+                    .repeatForever(autoreverses: true)
+                ) {
+                    glowActive = true
+                }
+            }
+        }
+        .onDisappear {
+            glowActive = false
+        }
     }
 
     private var cardContent: some View {
@@ -65,7 +96,10 @@ struct TimelineRepoCard: View {
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(AppTheme.Colors.border, lineWidth: 1)
+                .stroke(
+                    AppTheme.Colors.primary.opacity(isNewest ? 0.08 : 0.02 + dotOpacity * 0.04),
+                    lineWidth: 1
+                )
         )
     }
 
@@ -136,13 +170,12 @@ struct TimelineRepoCard: View {
         }
     }
 
-    private var dotColor: Color {
-        let hash = abs(item.repositoryName.hashValue)
-        let colors: [Color] = [.indigo, .purple, .cyan, .blue, .orange]
-        return colors[hash % colors.count]
+    private var dotOpacity: Double {
+        guard totalCount > 1 else { return 1.0 }
+        return max(0.2, 1.0 - (Double(index) / Double(totalCount - 1)) * 0.8)
     }
 
-    private var dotBackgroundColor: Color {
-        dotColor.opacity(0.2)
+    private var isNewest: Bool {
+        index == 0
     }
 }

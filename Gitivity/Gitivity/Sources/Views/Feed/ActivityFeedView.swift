@@ -21,12 +21,25 @@ struct ActivityFeedView: View {
                     } else {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 0) {
-                                Text(StringLiterals.Feed.title)
-                                    .font(AppTheme.Fonts.screenTitle)
-                                    .foregroundStyle(.white)
-                                    .padding(.horizontal, 18)
-                                    .padding(.top, 6)
-                                    .padding(.bottom, 20)
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text(StringLiterals.Feed.title)
+                                        .font(AppTheme.Fonts.screenTitle)
+                                        .tracking(-0.5)
+                                        .foregroundStyle(AppTheme.Colors.textBright)
+
+                                    RoundedRectangle(cornerRadius: 1)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [AppTheme.Colors.primary, AppTheme.Colors.primaryLight],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                        .frame(width: 32, height: 2)
+                                }
+                                .padding(.horizontal, 18)
+                                .padding(.top, 18)
+                                .padding(.bottom, 22)
 
                                 LazyVStack(alignment: .leading, spacing: 0) {
                                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
@@ -34,6 +47,8 @@ struct ActivityFeedView: View {
                                             TimelineRepoCard(
                                                 item: item,
                                                 isLast: index == items.count - 1,
+                                                index: index,
+                                                totalCount: items.count,
                                                 aiState: viewModel.aiSummaryStates[item.repoFullName] ?? .loading,
                                                 categoryState: viewModel.categoryStates[item.repoFullName] ?? .loading
                                             )
