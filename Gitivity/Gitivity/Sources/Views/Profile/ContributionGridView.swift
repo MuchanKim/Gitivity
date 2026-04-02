@@ -87,11 +87,11 @@ struct ContributionGridView: View {
 
     private func grassColor(level: Int) -> Color {
         switch level {
-        case 0: Color(hex: 0x131F2E)
-        case 1: Color(hex: 0x0C2D48)
-        case 2: Color(hex: 0x1E5F8A)
-        case 3: Color(hex: 0x3B82F6)
-        default: Color(hex: 0x60A5FA)
+        case 0: AppTheme.GrassColors.level0
+        case 1: AppTheme.GrassColors.level1
+        case 2: AppTheme.GrassColors.level2
+        case 3: AppTheme.GrassColors.level3
+        default: AppTheme.GrassColors.level4
         }
     }
 }

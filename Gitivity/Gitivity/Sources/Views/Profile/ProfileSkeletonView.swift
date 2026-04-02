@@ -67,7 +67,7 @@ struct ProfileSkeletonView: View {
         VStack(spacing: 14) {
             // Tab picker skeleton
             HStack(spacing: 0) {
-                SkeletonBlock(width: .infinity, height: 30)
+                SkeletonBlock(height: 30)
             }
             .frame(maxWidth: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: 8))
