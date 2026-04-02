@@ -3,25 +3,25 @@ import SwiftUI
 enum AppTheme {
     // MARK: - Colors
     enum Colors {
-        static let background = Color(hex: 0x0F1729)
-        static let cardBackground = Color(hex: 0x1A2332)
-        static let aiCardBackground = Color(hex: 0x111D2E)
-        static let border = Color(hex: 0x1E293B)
-        static let primary = Color(hex: 0x6366F1)
-        static let aiLabel = Color(hex: 0x22D3EE)
+        static let background = Color(hex: 0x080E18)
+        static let cardBackground = Color(hex: 0x0F1A28)
+        static let aiCardBackground = Color(hex: 0x081220)
+        static let border = Color(hex: 0x152030)
+        static let primary = Color(hex: 0x06B6D4)
+        static let aiLabel = Color(hex: 0x67E8F9)
         static let textPrimary = Color(hex: 0xE2E8F0)
         static let textSecondary = Color(hex: 0x94A3B8)
         static let textTertiary = Color(hex: 0x64748B)
         static let textMeta = Color(hex: 0x475569)
         static let danger = Color(hex: 0xF87171)
-        static let additions = Color(hex: 0x4ADE80)
+        static let additions = Color(hex: 0x34D399)
         static let deletions = Color(hex: 0xF87171)
     }
 
     // MARK: - Commit Category Colors
     enum CategoryColors {
-        static let feat = Color(hex: 0x4ADE80)
-        static let fix = Color(hex: 0xF59E0B)
+        static let feat = Color(hex: 0x34D399)
+        static let fix = Color(hex: 0xFB923C)
         static let style = Color(hex: 0xA78BFA)
         static let chore = Color(hex: 0x64748B)
     }

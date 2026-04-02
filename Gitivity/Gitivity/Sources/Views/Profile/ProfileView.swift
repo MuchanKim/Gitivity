@@ -53,22 +53,35 @@ struct ProfileView: View {
     }
 
     private var titleRow: some View {
-        HStack {
-            Text(StringLiterals.Profile.title)
-                .font(AppTheme.Fonts.screenTitle)
-                .foregroundStyle(.white)
-            Spacer()
-            NavigationLink(destination: SettingsView()) {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 14))
-                    .foregroundStyle(AppTheme.Colors.textTertiary)
-                    .frame(width: 32, height: 32)
-                    .background(AppTheme.Colors.cardBackground)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(AppTheme.Colors.border, lineWidth: 1))
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(StringLiterals.Profile.title)
+                    .font(.system(size: 28, weight: .black))
+                    .tracking(-0.5)
+                    .foregroundStyle(Color(hex: 0xF1F5F9))
+                Spacer()
+                NavigationLink(destination: SettingsView()) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 14))
+                        .foregroundStyle(AppTheme.Colors.textTertiary)
+                        .frame(width: 32, height: 32)
+                        .background(AppTheme.Colors.cardBackground)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(AppTheme.Colors.border, lineWidth: 1))
+                }
             }
+
+            RoundedRectangle(cornerRadius: 1)
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: 0x06B6D4), Color(hex: 0x22D3EE)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(width: 32, height: 2)
         }
-        .padding(.top, 4)
+        .padding(.top, 14)
     }
 
     private func profileHero(data: ProfileData) -> some View {
