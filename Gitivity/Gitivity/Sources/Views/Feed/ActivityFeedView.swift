@@ -23,14 +23,14 @@ struct ActivityFeedView: View {
                             VStack(alignment: .leading, spacing: 0) {
                                 VStack(alignment: .leading, spacing: 8) {
                                     Text(StringLiterals.Feed.title)
-                                        .font(.system(size: 28, weight: .black))
+                                        .font(AppTheme.Fonts.screenTitle)
                                         .tracking(-0.5)
-                                        .foregroundStyle(Color(hex: 0xF1F5F9))
+                                        .foregroundStyle(AppTheme.Colors.textBright)
 
                                     RoundedRectangle(cornerRadius: 1)
                                         .fill(
                                             LinearGradient(
-                                                colors: [Color(hex: 0x06B6D4), Color(hex: 0x22D3EE)],
+                                                colors: [AppTheme.Colors.primary, AppTheme.Colors.primaryLight],
                                                 startPoint: .leading,
                                                 endPoint: .trailing
                                             )

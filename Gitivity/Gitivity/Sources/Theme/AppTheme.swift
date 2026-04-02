@@ -8,7 +8,9 @@ enum AppTheme {
         static let aiCardBackground = Color(hex: 0x081220)
         static let border = Color(hex: 0x152030)
         static let primary = Color(hex: 0x06B6D4)
+        static let primaryLight = Color(hex: 0x22D3EE)
         static let aiLabel = Color(hex: 0x67E8F9)
+        static let textBright = Color(hex: 0xF1F5F9)
         static let textPrimary = Color(hex: 0xE2E8F0)
         static let textSecondary = Color(hex: 0x94A3B8)
         static let textTertiary = Color(hex: 0x64748B)
@@ -29,7 +31,7 @@ enum AppTheme {
     // MARK: - Typography
     enum Fonts {
         // Display
-        static let screenTitle = Font.system(size: 28, weight: .heavy)
+        static let screenTitle = Font.system(size: 28, weight: .black)
         static let pageTitle = Font.system(size: 24, weight: .heavy)
 
         // Profile

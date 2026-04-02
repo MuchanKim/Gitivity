@@ -60,6 +60,9 @@ struct TimelineRepoCard: View {
                 }
             }
         }
+        .onDisappear {
+            glowActive = false
+        }
     }
 
     private var cardContent: some View {

@@ -56,9 +56,9 @@ struct ProfileView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(StringLiterals.Profile.title)
-                    .font(.system(size: 28, weight: .black))
+                    .font(AppTheme.Fonts.screenTitle)
                     .tracking(-0.5)
-                    .foregroundStyle(Color(hex: 0xF1F5F9))
+                    .foregroundStyle(AppTheme.Colors.textBright)
                 Spacer()
                 NavigationLink(destination: SettingsView()) {
                     Image(systemName: "gearshape")
@@ -74,7 +74,7 @@ struct ProfileView: View {
             RoundedRectangle(cornerRadius: 1)
                 .fill(
                     LinearGradient(
-                        colors: [Color(hex: 0x06B6D4), Color(hex: 0x22D3EE)],
+                        colors: [AppTheme.Colors.primary, AppTheme.Colors.primaryLight],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
