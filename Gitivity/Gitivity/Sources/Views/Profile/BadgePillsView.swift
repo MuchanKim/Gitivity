@@ -52,11 +52,11 @@ struct BadgePillsView: View {
         .padding(.leading, 6)
         .padding(.trailing, 10)
         .background(badge.type.accentColor.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(badge.type.accentColor.opacity(0.15), lineWidth: 1)
+                .strokeBorder(badge.type.accentColor.opacity(0.15), lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     private var morePill: some View {
@@ -66,10 +66,10 @@ struct BadgePillsView: View {
             .padding(.vertical, 4)
             .padding(.horizontal, 10)
             .background(AppTheme.Colors.textTertiary.opacity(0.08))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(AppTheme.Colors.textTertiary.opacity(0.15), lineWidth: 1)
+                    .strokeBorder(AppTheme.Colors.textTertiary.opacity(0.15), lineWidth: 1)
             )
-            .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 }
