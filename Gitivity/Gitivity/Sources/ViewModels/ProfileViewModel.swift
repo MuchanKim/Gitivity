@@ -61,17 +61,13 @@ final class ProfileViewModel {
             profileState = .loaded(data)
             badges = BadgeCalculator.calculate(from: data)
 
-            // AI classification independently — 별도 에러 처리
+            // AI classification independently
             categoryState = .loading
-            do {
-                let messages = fetchedCommits.map(\.message)
-                let categories = await classifier.classifyBatch(messages)
-                var dist: [CommitCategory: Int] = [:]
-                for cat in categories { dist[cat, default: 0] += 1 }
-                categoryState = .loaded(dist)
-            } catch {
-                categoryState = .error(error)
-            }
+            let messages = fetchedCommits.map(\.message)
+            let categories = await classifier.classifyBatch(messages)
+            var dist: [CommitCategory: Int] = [:]
+            for cat in categories { dist[cat, default: 0] += 1 }
+            categoryState = .loaded(dist)
         } catch {
             isRetrying = false
             if case .loaded = profileState {
