@@ -1,0 +1,75 @@
+import SwiftUI
+
+struct BadgePillsView: View {
+    let badges: [DeveloperBadge]
+    @State private var showSheet = false
+
+    private var earnedBadges: [DeveloperBadge] {
+        badges.filter(\.isEarned)
+    }
+
+    private var displayBadges: [DeveloperBadge] {
+        Array(earnedBadges.prefix(3))
+    }
+
+    private var moreCount: Int {
+        max(earnedBadges.count - 3, 0)
+    }
+
+    var body: some View {
+        if !earnedBadges.isEmpty {
+            HStack(spacing: 6) {
+                ForEach(displayBadges) { badge in
+                    badgePill(badge)
+                }
+                if moreCount > 0 {
+                    morePill
+                }
+            }
+            .onTapGesture { showSheet = true }
+            .sheet(isPresented: $showSheet) {
+                BadgeDetailSheet(badges: badges)
+            }
+        }
+    }
+
+    private func badgePill(_ badge: DeveloperBadge) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: badge.type.systemImage)
+                .font(.system(size: 8, weight: .bold))
+                .foregroundStyle(.white)
+                .frame(width: 18, height: 18)
+                .background(
+                    LinearGradient(colors: badge.type.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 5))
+
+            Text(badge.type.name)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(badge.type.accentColor)
+        }
+        .padding(.vertical, 4)
+        .padding(.leading, 6)
+        .padding(.trailing, 10)
+        .background(badge.type.accentColor.opacity(0.08))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(badge.type.accentColor.opacity(0.15), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var morePill: some View {
+        Text("+\(moreCount)")
+            .font(.system(size: 10, weight: .semibold))
+            .foregroundStyle(AppTheme.Colors.textTertiary)
+            .padding(.vertical, 4)
+            .padding(.horizontal, 10)
+            .background(AppTheme.Colors.textTertiary.opacity(0.08))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(AppTheme.Colors.textTertiary.opacity(0.15), lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+}

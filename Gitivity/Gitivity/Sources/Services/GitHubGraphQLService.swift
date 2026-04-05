@@ -58,6 +58,98 @@ struct GitHubGraphQLService: Sendable {
             }
     }
 
+    // MARK: - Contribution Stats
+
+    struct ContributionStats: Sendable {
+        let totalCommits: Int
+        let totalPRs: Int
+        let totalReviews: Int
+        let totalIssues: Int
+        let contributions: [ContributionDay]
+    }
+
+    func fetchContributionStats(from startDate: Date, to endDate: Date) async throws -> ContributionStats {
+        let query = """
+        query($from: DateTime!, $to: DateTime!) {
+          viewer {
+            contributionsCollection(from: $from, to: $to) {
+              totalCommitContributions
+              totalPullRequestContributions
+              totalPullRequestReviewContributions
+              totalIssueContributions
+              contributionCalendar {
+                weeks {
+                  contributionDays {
+                    date
+                    contributionCount
+                    contributionLevel
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+        let iso = ISO8601DateFormatter()
+        let variables: [String: Any] = [
+            "from": iso.string(from: startDate),
+            "to": iso.string(from: endDate),
+        ]
+        let result: ContributionStatsResponse = try await execute(query: query, variables: variables)
+        let collection = result.viewer.contributionsCollection
+
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd"
+        df.timeZone = TimeZone(identifier: "UTC")
+
+        let days = collection.contributionCalendar.weeks
+            .flatMap(\.contributionDays)
+            .compactMap { day in
+                guard let date = df.date(from: day.date) else { return nil as ContributionDay? }
+                return ContributionDay(date: date, count: day.contributionCount, level: day.contributionLevel.numericValue)
+            }
+
+        return ContributionStats(
+            totalCommits: collection.totalCommitContributions,
+            totalPRs: collection.totalPullRequestContributions,
+            totalReviews: collection.totalPullRequestReviewContributions,
+            totalIssues: collection.totalIssueContributions,
+            contributions: days
+        )
+    }
+
+    // MARK: - Stars
+
+    struct StarsInfo: Sendable {
+        let totalStars: Int
+        let topRepoName: String
+        let topRepoStars: Int
+    }
+
+    func fetchTotalStars() async throws -> StarsInfo {
+        let query = """
+        query {
+          viewer {
+            repositories(first: 100, ownerAffiliations: OWNER, orderBy: {field: STARGAZERS, direction: DESC}) {
+              nodes {
+                name
+                stargazerCount
+              }
+            }
+          }
+        }
+        """
+        let result: StarsResponse = try await execute(query: query)
+        let repos = result.viewer.repositories.nodes
+        let total = repos.reduce(0) { $0 + $1.stargazerCount }
+        let top = repos.first
+        return StarsInfo(
+            totalStars: total,
+            topRepoName: top?.name ?? "",
+            topRepoStars: top?.stargazerCount ?? 0
+        )
+    }
+
     // MARK: - Pull Requests
 
     func fetchPullRequests(limit: Int = 20) async throws -> [PullRequest] {
@@ -370,6 +462,57 @@ private struct CommitsResponse: Decodable {
 
     struct CommitUser: Decodable {
         let login: String
+    }
+}
+
+// MARK: - Contribution Stats Response
+
+private struct ContributionStatsResponse: Decodable {
+    let viewer: ViewerContributionStats
+
+    struct ViewerContributionStats: Decodable {
+        let contributionsCollection: StatsCollection
+    }
+
+    struct StatsCollection: Decodable {
+        let totalCommitContributions: Int
+        let totalPullRequestContributions: Int
+        let totalPullRequestReviewContributions: Int
+        let totalIssueContributions: Int
+        let contributionCalendar: Calendar
+
+        struct Calendar: Decodable {
+            let weeks: [Week]
+        }
+
+        struct Week: Decodable {
+            let contributionDays: [Day]
+        }
+
+        struct Day: Decodable {
+            let date: String
+            let contributionCount: Int
+            let contributionLevel: ContributionLevel
+        }
+    }
+}
+
+// MARK: - Stars Response
+
+private struct StarsResponse: Decodable {
+    let viewer: ViewerStars
+
+    struct ViewerStars: Decodable {
+        let repositories: StarRepoConnection
+    }
+
+    struct StarRepoConnection: Decodable {
+        let nodes: [StarRepoNode]
+    }
+
+    struct StarRepoNode: Decodable {
+        let name: String
+        let stargazerCount: Int
     }
 }
 

@@ -85,8 +85,11 @@ struct ActivityBarView: View {
         switch category {
         case .feat: AppTheme.CategoryColors.feat
         case .fix: AppTheme.CategoryColors.fix
-        case .style, .refactor: AppTheme.CategoryColors.style
-        default: AppTheme.CategoryColors.chore
+        case .refactor: AppTheme.CategoryColors.refactor
+        case .style: AppTheme.CategoryColors.style
+        case .chore: AppTheme.CategoryColors.chore
+        case .docs: AppTheme.CategoryColors.docs
+        case .test: AppTheme.CategoryColors.test
         }
     }
 }

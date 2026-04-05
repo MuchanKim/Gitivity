@@ -14,12 +14,12 @@ struct ProfileView: View {
                     }
                 case .loaded(let data):
                     ScrollView {
-                        VStack(spacing: 16) {
+                        VStack(spacing: 14) {
                             titleRow
-                            profileHero(data: data)
-                            statsSection(data: data)
-                            contributionGrid(data: data)
-                            activitySection
+                            profileHeader(data: data)
+                            contributionChart(data: data)
+                            starsCard(data: data)
+                            ContributionGridView(contributions: data.contributions)
                         }
                         .padding(.horizontal, 18)
                         .padding(.bottom, 20)
@@ -84,7 +84,7 @@ struct ProfileView: View {
         .padding(.top, 14)
     }
 
-    private func profileHero(data: ProfileData) -> some View {
+    private func profileHeader(data: ProfileData) -> some View {
         VStack(spacing: 10) {
             AsyncImage(url: URL(string: data.user.avatarURL)) { image in
                 image.resizable().scaledToFill()
@@ -103,52 +103,32 @@ struct ProfileView: View {
                     .font(AppTheme.Fonts.cardBody)
                     .foregroundStyle(AppTheme.Colors.textTertiary)
             }
+
+            BadgePillsView(badges: viewModel.badges)
         }
         .padding(.top, 8)
         .padding(.bottom, 4)
     }
 
-    private func statsSection(data: ProfileData) -> some View {
-        ActivityStatsView(
-            commits: data.totalCommits,
-            prs: data.totalPRs,
-            repos: data.activeRepos
+    private func contributionChart(data: ProfileData) -> some View {
+        ContributionChartView(
+            totalCommits: data.totalCommits,
+            totalPRs: data.totalPRs,
+            totalReviews: data.totalReviews,
+            totalIssues: data.totalIssues,
+            categoryDistribution: {
+                if case .loaded(let dist) = viewModel.categoryState { return dist }
+                return [:]
+            }(),
+            streak: data.currentStreak
         )
     }
 
-    private func contributionGrid(data: ProfileData) -> some View {
-        ContributionGridView(contributions: data.contributions)
-    }
-
-    private var activitySection: some View {
-        Group {
-            switch viewModel.categoryState {
-            case .loading:
-                EmptyView()
-            case .loaded(let distribution):
-                if !distribution.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(StringLiterals.Profile.activityClassification)
-                            .font(AppTheme.Fonts.sectionTitle)
-                            .foregroundStyle(AppTheme.Colors.textSecondary)
-                        ActivityBarView(
-                            distribution: distribution,
-                            barHeight: 6,
-                            showPercentage: true
-                        )
-                    }
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 14)
-                    .background(AppTheme.Colors.cardBackground)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(AppTheme.Colors.border, lineWidth: 1)
-                    )
-                }
-            case .error:
-                EmptyView()
-            }
-        }
+    private func starsCard(data: ProfileData) -> some View {
+        StarsCardView(
+            totalStars: data.totalStars,
+            topRepoName: data.topRepoName,
+            topRepoStars: data.topRepoStars
+        )
     }
 }
