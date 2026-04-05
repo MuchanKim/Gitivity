@@ -18,6 +18,12 @@ enum AppTheme {
         static let danger = Color(hex: 0xF87171)
         static let additions = Color(hex: 0x34D399)
         static let deletions = Color(hex: 0xF87171)
+        static let starGold = Color(hex: 0xFBBF24)
+
+        // Contribution type chart colors
+        static let chartPR = Color(hex: 0x34D399)
+        static let chartReview = Color(hex: 0xA78BFA)
+        static let chartIssue = Color(hex: 0xFB923C)
     }
 
     // MARK: - Commit Category Colors

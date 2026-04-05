@@ -98,7 +98,7 @@ struct ProfileView: View {
             VStack(spacing: 2) {
                 Text(data.user.name ?? data.user.login)
                     .font(AppTheme.Fonts.profileName)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(AppTheme.Colors.textBright)
                 Text("@\(data.user.login)")
                     .font(AppTheme.Fonts.cardBody)
                     .foregroundStyle(AppTheme.Colors.textTertiary)
@@ -116,10 +116,7 @@ struct ProfileView: View {
             totalPRs: data.totalPRs,
             totalReviews: data.totalReviews,
             totalIssues: data.totalIssues,
-            categoryDistribution: {
-                if case .loaded(let dist) = viewModel.categoryState { return dist }
-                return [:]
-            }(),
+            categoryDistribution: viewModel.categoryDistribution,
             streak: data.currentStreak
         )
     }

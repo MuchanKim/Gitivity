@@ -11,6 +11,11 @@ final class ProfileViewModel {
     private let keychain = KeychainService()
     private let classifier = CommitClassifier(aiProvider: FoundationProvider())
 
+    var categoryDistribution: [CommitCategory: Int] {
+        if case .loaded(let dist) = categoryState { return dist }
+        return [:]
+    }
+
     func load() async {
         if case .loaded = profileState {
             // refresh — keep existing data visible
@@ -49,7 +54,8 @@ final class ProfileViewModel {
                 totalStars: fetchedStars.totalStars,
                 topRepoName: fetchedStars.topRepoName,
                 topRepoStars: fetchedStars.topRepoStars,
-                commits: fetchedCommits
+                commits: fetchedCommits,
+                currentStreak: ProfileData.calculateStreak(from: fetchedStats.contributions)
             )
             isRetrying = false
             profileState = .loaded(data)

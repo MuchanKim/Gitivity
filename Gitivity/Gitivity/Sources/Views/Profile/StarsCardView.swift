@@ -9,7 +9,7 @@ struct StarsCardView: View {
         HStack(spacing: 12) {
             Image(systemName: "star.fill")
                 .font(.system(size: 18))
-                .foregroundStyle(Color(hex: 0xFBBF24))
+                .foregroundStyle(AppTheme.Colors.starGold)
                 .frame(width: 36, height: 36)
                 .background(AppTheme.Colors.aiCardBackground)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -36,7 +36,7 @@ struct StarsCardView: View {
                         Text("\(topRepoStars)")
                     }
                     .font(.system(size: 10))
-                    .foregroundStyle(Color(hex: 0xFBBF24))
+                    .foregroundStyle(AppTheme.Colors.starGold)
                 }
             }
         }

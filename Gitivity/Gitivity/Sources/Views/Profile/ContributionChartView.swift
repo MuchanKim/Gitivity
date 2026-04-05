@@ -63,16 +63,16 @@ struct ContributionChartView: View {
             donutChart(
                 segments: [
                     (Double(totalCommits), AppTheme.Colors.primary),
-                    (Double(totalPRs), Color(hex: 0x34D399)),
-                    (Double(totalReviews), Color(hex: 0xA78BFA)),
-                    (Double(totalIssues), Color(hex: 0xFB923C)),
+                    (Double(totalPRs), AppTheme.Colors.chartPR),
+                    (Double(totalReviews), AppTheme.Colors.chartReview),
+                    (Double(totalIssues), AppTheme.Colors.chartIssue),
                 ]
             )
             VStack(alignment: .leading, spacing: 8) {
                 legendRow(color: AppTheme.Colors.primary, label: "커밋", value: totalCommits)
-                legendRow(color: Color(hex: 0x34D399), label: "PR", value: totalPRs)
-                legendRow(color: Color(hex: 0xA78BFA), label: "리뷰", value: totalReviews)
-                legendRow(color: Color(hex: 0xFB923C), label: "이슈", value: totalIssues)
+                legendRow(color: AppTheme.Colors.chartPR, label: "PR", value: totalPRs)
+                legendRow(color: AppTheme.Colors.chartReview, label: "리뷰", value: totalReviews)
+                legendRow(color: AppTheme.Colors.chartIssue, label: "이슈", value: totalIssues)
             }
         }
     }
