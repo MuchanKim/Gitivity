@@ -130,7 +130,7 @@ struct GitHubGraphQLService: Sendable {
         let query = """
         query {
           viewer {
-            repositories(first: 100, ownerAffiliations: OWNER, orderBy: {field: STARGAZERS, direction: DESC}) {
+            repositories(first: 100, orderBy: {field: STARGAZERS, direction: DESC}) {
               nodes {
                 name
                 stargazerCount
