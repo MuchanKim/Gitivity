@@ -63,13 +63,13 @@ struct BadgeDetailSheet: View {
             }
         }
         .padding(14)
-        .background(rarityBackground(badge.type.rarity, accent: badge.type.accentColor))
+        .background(rarityBackground(badge.type.rarity))
         .clipShape(RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(rarityBorderGradient(badge.type.rarity, accent: badge.type.accentColor), lineWidth: 1)
+                .stroke(rarityBorderGradient(badge.type.rarity), lineWidth: 1)
         )
-        .shadow(color: rarityShadowColor(badge.type.rarity, accent: badge.type.accentColor), radius: rarityShadowRadius(badge.type.rarity))
+        .shadow(color: rarityShadowColor(badge.type.rarity), radius: rarityShadowRadius(badge.type.rarity))
     }
 
     private func lockedRow(_ badge: DeveloperBadge) -> some View {
@@ -144,27 +144,27 @@ struct BadgeDetailSheet: View {
     private func rarityTagColor(_ rarity: BadgeRarity) -> Color {
         switch rarity {
         case .common: AppTheme.Colors.textSecondary
-        case .rare: Color(hex: 0x60A5FA)
-        case .epic: Color(hex: 0xA78BFA)
-        case .legendary: Color(hex: 0xFFD700)
+        case .rare: AppTheme.RarityColors.rare
+        case .epic: AppTheme.RarityColors.epic
+        case .legendary: AppTheme.RarityColors.legendary
         }
     }
 
     private func rarityTagBackground(_ rarity: BadgeRarity) -> Color {
         switch rarity {
         case .common: AppTheme.Colors.textSecondary.opacity(0.1)
-        case .rare: Color(hex: 0x60A5FA).opacity(0.1)
-        case .epic: Color(hex: 0xA78BFA).opacity(0.1)
-        case .legendary: Color(hex: 0xFFD700).opacity(0.1)
+        case .rare: AppTheme.RarityColors.rare.opacity(0.1)
+        case .epic: AppTheme.RarityColors.epic.opacity(0.1)
+        case .legendary: AppTheme.RarityColors.legendary.opacity(0.1)
         }
     }
 
-    private func rarityBackground(_ rarity: BadgeRarity, accent: Color) -> some ShapeStyle {
+    private func rarityBackground(_ rarity: BadgeRarity) -> some ShapeStyle {
         switch rarity {
         case .legendary:
             AnyShapeStyle(
                 LinearGradient(
-                    colors: [Color(hex: 0xFFD700).opacity(0.06), Color(hex: 0xFB923C).opacity(0.03), Color(hex: 0x0A1420).opacity(0.9)],
+                    colors: [AppTheme.RarityColors.legendary.opacity(0.06), AppTheme.Colors.chartIssue.opacity(0.03), Color(hex: 0x0A1420).opacity(0.9)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -172,7 +172,7 @@ struct BadgeDetailSheet: View {
         case .epic:
             AnyShapeStyle(
                 LinearGradient(
-                    colors: [Color(hex: 0xA78BFA).opacity(0.05), Color(hex: 0x7C3AED).opacity(0.02), Color(hex: 0x0A1420).opacity(0.9)],
+                    colors: [AppTheme.RarityColors.epic.opacity(0.05), AppTheme.RarityColors.epic.opacity(0.02), Color(hex: 0x0A1420).opacity(0.9)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -180,7 +180,7 @@ struct BadgeDetailSheet: View {
         case .rare:
             AnyShapeStyle(
                 LinearGradient(
-                    colors: [Color(hex: 0x60A5FA).opacity(0.03), Color(hex: 0x0A1420).opacity(0.9)],
+                    colors: [AppTheme.RarityColors.rare.opacity(0.03), Color(hex: 0x0A1420).opacity(0.9)],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
@@ -190,23 +190,23 @@ struct BadgeDetailSheet: View {
         }
     }
 
-    private func rarityBorderGradient(_ rarity: BadgeRarity, accent: Color) -> LinearGradient {
+    private func rarityBorderGradient(_ rarity: BadgeRarity) -> LinearGradient {
         switch rarity {
         case .legendary:
             LinearGradient(
-                colors: [Color(hex: 0xFFD700).opacity(0.2), Color(hex: 0xFFD700).opacity(0.05), .clear],
+                colors: [AppTheme.RarityColors.legendary.opacity(0.2), AppTheme.RarityColors.legendary.opacity(0.05), .clear],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
         case .epic:
             LinearGradient(
-                colors: [Color(hex: 0xA78BFA).opacity(0.15), Color(hex: 0xA78BFA).opacity(0.03), .clear],
+                colors: [AppTheme.RarityColors.epic.opacity(0.15), AppTheme.RarityColors.epic.opacity(0.03), .clear],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
         case .rare:
             LinearGradient(
-                colors: [Color(hex: 0x60A5FA).opacity(0.1), .clear],
+                colors: [AppTheme.RarityColors.rare.opacity(0.1), .clear],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -215,10 +215,10 @@ struct BadgeDetailSheet: View {
         }
     }
 
-    private func rarityShadowColor(_ rarity: BadgeRarity, accent: Color) -> Color {
+    private func rarityShadowColor(_ rarity: BadgeRarity) -> Color {
         switch rarity {
-        case .legendary: Color(hex: 0xFFD700).opacity(0.15)
-        case .epic: Color(hex: 0xA78BFA).opacity(0.1)
+        case .legendary: AppTheme.RarityColors.legendary.opacity(0.15)
+        case .epic: AppTheme.RarityColors.epic.opacity(0.1)
         default: .clear
         }
     }
