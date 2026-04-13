@@ -29,15 +29,32 @@ final class ProfileViewModel {
 
     private let keychain = KeychainService()
     private let classifier = CommitClassifier(aiProvider: FoundationProvider())
+    private let cache = DataCacheService.shared
 
     var categoryDistribution: [CommitCategory: Int] {
         if case .loaded(let dist) = categoryState { return dist }
         return [:]
     }
 
-    func load() async {
+    func load(forceRefresh: Bool = false) async {
+        let periodDays = selectedPeriod.rawValue
+
+        // Check cache first
+        if !forceRefresh,
+           let cachedData: ProfileData = await cache.get(CacheKey.profileData(periodDays)),
+           let cachedBadges: [DeveloperBadge] = await cache.get(CacheKey.profileBadges),
+           let _: [ContributionDay] = await cache.get(CacheKey.profileGridContributions) {
+            profileState = .loaded(cachedData)
+            badges = cachedBadges
+
+            if let cachedCats: [CommitCategory: Int] = await cache.get(CacheKey.profileCategories(periodDays)) {
+                categoryState = .loaded(cachedCats)
+            }
+            return
+        }
+
         if case .loaded = profileState {
-            // refresh — keep existing data visible
+            // refresh path
         } else if case .error = profileState {
             isRetrying = true
         } else {
@@ -53,7 +70,7 @@ final class ProfileViewModel {
 
         do {
             let now = Date()
-            let statsStart = Calendar.current.date(byAdding: .day, value: -selectedPeriod.rawValue, to: now) ?? now
+            let statsStart = Calendar.current.date(byAdding: .day, value: -periodDays, to: now) ?? now
             let gridStart = Calendar.current.date(byAdding: .day, value: -180, to: now) ?? now
 
             async let viewer = api.fetchViewer()
@@ -82,13 +99,23 @@ final class ProfileViewModel {
             profileState = .loaded(data)
             badges = BadgeCalculator.calculate(from: data)
 
-            // AI classification independently
-            categoryState = .loading
-            let messages = fetchedCommits.map(\.message)
-            let categories = await classifier.classifyBatch(messages)
-            var dist: [CommitCategory: Int] = [:]
-            for cat in categories { dist[cat, default: 0] += 1 }
-            categoryState = .loaded(dist)
+            // Cache profile data
+            await cache.set(CacheKey.profileData(periodDays), value: data)
+            await cache.set(CacheKey.profileBadges, value: badges)
+            await cache.set(CacheKey.profileGridContributions, value: fetchedGrid)
+
+            // AI classification — check cache
+            if let cachedCats: [CommitCategory: Int] = await cache.get(CacheKey.profileCategories(periodDays)) {
+                categoryState = .loaded(cachedCats)
+            } else {
+                categoryState = .loading
+                let messages = fetchedCommits.map(\.message)
+                let categories = await classifier.classifyBatch(messages)
+                var dist: [CommitCategory: Int] = [:]
+                for cat in categories { dist[cat, default: 0] += 1 }
+                categoryState = .loaded(dist)
+                await cache.set(CacheKey.profileCategories(periodDays), value: dist)
+            }
         } catch {
             isRetrying = false
             if case .loaded = profileState {

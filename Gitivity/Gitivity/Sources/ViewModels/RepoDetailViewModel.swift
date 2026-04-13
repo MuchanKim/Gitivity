@@ -11,9 +11,10 @@ final class RepoDetailViewModel {
 
     private let promptBuilder = ActivityPromptBuilder()
     private let classifier = CommitClassifier(aiProvider: FoundationProvider())
+    private let cache = DataCacheService.shared
 
     func load(from timelineItem: TimelineItem, feedAISummary: LoadingState<String>, feedCategory: LoadingState<[CommitCategory: Int]>) async {
-        // Inherit AI state from feed
+        // Inherit AI state from feed (already cached by FeedViewModel)
         repoAISummary = feedAISummary
         if case .loaded(let dist) = feedCategory {
             categoryDistribution = dist
@@ -29,11 +30,7 @@ final class RepoDetailViewModel {
                 commit.committedDate <= (pr.mergedAt ?? pr.createdAt)
             }
 
-            let classifiedCommits = await Self.classifyCommits(
-                prCommits,
-                classifier: classifier,
-                promptBuilder: promptBuilder
-            )
+            let classifiedCommits = await classifyCommitsWithCache(prCommits)
 
             itemAISummaries[pr.id] = .loading
             items.append(RepoDetailItem(
@@ -53,11 +50,7 @@ final class RepoDetailViewModel {
         let standaloneCommits = timelineItem.commits.filter { !prCommitIDs.contains($0.id) }
 
         for commit in standaloneCommits.sorted(by: { $0.committedDate > $1.committedDate }) {
-            let classified = await Self.classifyCommits(
-                [commit],
-                classifier: classifier,
-                promptBuilder: promptBuilder
-            )
+            let classified = await classifyCommitsWithCache([commit])
             guard let c = classified.first else { continue }
 
             items.append(RepoDetailItem(
@@ -70,70 +63,35 @@ final class RepoDetailViewModel {
                 deletions: commit.deletions,
                 commits: []
             ))
-            // Commit translation is already done in classifyCommits
             itemAISummaries[commit.id] = .loaded(c.translatedMessage ?? commit.message)
         }
 
         detailState = .loaded(items.sorted { $0.timestamp > $1.timestamp })
 
-        // Generate PR AI summaries independently
+        // Generate PR AI summaries — check cache first
         await generatePRAISummaries(pullRequests: timelineItem.pullRequests, items: items, timelineItem: timelineItem, provider: provider)
     }
 
-    private func generatePRAISummaries(pullRequests: [PullRequest], items: [RepoDetailItem], timelineItem: TimelineItem, provider: FoundationProvider) async {
-        // PR id → PullRequest 매핑 (body 접근용)
-        let prMap = Dictionary(uniqueKeysWithValues: pullRequests.map { ($0.id, $0) })
-
-        await withTaskGroup(of: (String, Result<String, Error>).self) { group in
-            for item in items {
-                guard case .pullRequest = item.type else { continue }
-                let pr = prMap[item.id]
-                let prCommits = item.commits.map { classified in
-                    timelineItem.commits.first { $0.id == classified.id }
-                }.compactMap { $0 }
-
-                group.addTask { [promptBuilder] in
-                    let prompt = promptBuilder.buildPRSummaryPrompt(
-                        title: item.title,
-                        body: pr?.body ?? "",
-                        commits: prCommits
-                    )
-                    do {
-                        let summary = try await provider.summarize(prompt: prompt)
-                        return (item.id, .success(summary))
-                    } catch {
-                        AILogger.generation.error("[RepoDetail] PR summary failed for \(item.title): \(error)")
-                        return (item.id, .failure(error))
-                    }
-                }
-            }
-
-            for await (itemId, result) in group {
-                switch result {
-                case .success(let summary):
-                    itemAISummaries[itemId] = .loaded(summary)
-                case .failure(let error):
-                    itemAISummaries[itemId] = .error(error)
-                }
-            }
-        }
-    }
-
-    nonisolated private static func classifyCommits(
-        _ commits: [Commit],
-        classifier: CommitClassifier,
-        promptBuilder: ActivityPromptBuilder
-    ) async -> [ClassifiedCommit] {
+    private func classifyCommitsWithCache(_ commits: [Commit]) async -> [ClassifiedCommit] {
         await withTaskGroup(of: ClassifiedCommit.self) { group in
             for commit in commits {
-                group.addTask {
+                group.addTask { [classifier, promptBuilder, cache] in
                     let category = await classifier.classify(commit.message)
-                    let prompt = promptBuilder.buildCommitTranslationPrompt(commit.message)
+
+                    // Check cache for translation
                     var translation: String?
-                    do {
-                        translation = try await FoundationProvider().summarize(prompt: prompt)
-                    } catch {
-                        AILogger.generation.error("[RepoDetail] commit translation failed: \(error)")
+                    if let cached: String = await cache.get(CacheKey.commitTranslation(commit.id)) {
+                        translation = cached
+                    } else {
+                        let prompt = promptBuilder.buildCommitTranslationPrompt(commit.message)
+                        do {
+                            translation = try await FoundationProvider().summarize(prompt: prompt)
+                            if let t = translation {
+                                await cache.set(CacheKey.commitTranslation(commit.id), value: t)
+                            }
+                        } catch {
+                            AILogger.generation.error("[RepoDetail] commit translation failed: \(error)")
+                        }
                     }
 
                     return ClassifiedCommit(
@@ -153,6 +111,51 @@ final class RepoDetailViewModel {
                 results.append(result)
             }
             return results.sorted { $0.timestamp > $1.timestamp }
+        }
+    }
+
+    private func generatePRAISummaries(pullRequests: [PullRequest], items: [RepoDetailItem], timelineItem: TimelineItem, provider: FoundationProvider) async {
+        let prMap = Dictionary(uniqueKeysWithValues: pullRequests.map { ($0.id, $0) })
+
+        await withTaskGroup(of: (String, Result<String, Error>).self) { group in
+            for item in items {
+                guard case .pullRequest = item.type else { continue }
+
+                // Check cache first
+                group.addTask { [promptBuilder, cache] in
+                    if let cached: String = await cache.get(CacheKey.prAISummary(item.id)) {
+                        return (item.id, .success(cached))
+                    }
+
+                    let pr = prMap[item.id]
+                    let prCommits = item.commits.map { classified in
+                        timelineItem.commits.first { $0.id == classified.id }
+                    }.compactMap { $0 }
+
+                    let prompt = promptBuilder.buildPRSummaryPrompt(
+                        title: item.title,
+                        body: pr?.body ?? "",
+                        commits: prCommits
+                    )
+                    do {
+                        let summary = try await provider.summarize(prompt: prompt)
+                        await cache.set(CacheKey.prAISummary(item.id), value: summary)
+                        return (item.id, .success(summary))
+                    } catch {
+                        AILogger.generation.error("[RepoDetail] PR summary failed for \(item.title): \(error)")
+                        return (item.id, .failure(error))
+                    }
+                }
+            }
+
+            for await (itemId, result) in group {
+                switch result {
+                case .success(let summary):
+                    itemAISummaries[itemId] = .loaded(summary)
+                case .failure(let error):
+                    itemAISummaries[itemId] = .error(error)
+                }
+            }
         }
     }
 

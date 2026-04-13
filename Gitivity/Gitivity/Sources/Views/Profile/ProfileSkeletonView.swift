@@ -3,7 +3,6 @@ import SwiftUI
 struct ProfileSkeletonView: View {
     var body: some View {
         VStack(spacing: 14) {
-            titleRow
             avatarSection
             donutChartSkeleton
             starsCardSkeleton
@@ -11,31 +10,6 @@ struct ProfileSkeletonView: View {
         }
         .padding(.horizontal, 18)
         .padding(.bottom, 20)
-    }
-
-    private var titleRow: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(StringLiterals.Profile.title)
-                    .font(AppTheme.Fonts.screenTitle)
-                    .tracking(-0.5)
-                    .foregroundStyle(AppTheme.Colors.textBright)
-                Spacer()
-                SkeletonBlock(width: 32, height: 32)
-                    .clipShape(Circle())
-            }
-
-            RoundedRectangle(cornerRadius: 1)
-                .fill(
-                    LinearGradient(
-                        colors: [AppTheme.Colors.primary, AppTheme.Colors.primaryLight],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .frame(width: 32, height: 2)
-        }
-        .padding(.top, 14)
     }
 
     private var avatarSection: some View {
