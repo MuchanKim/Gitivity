@@ -6,7 +6,10 @@ struct ProfileView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
+            VStack(spacing: 0) {
+                titleRow
+                    .padding(.horizontal, 20)
+
                 switch viewModel.profileState {
                 case .loading:
                     ScrollView {
@@ -15,7 +18,6 @@ struct ProfileView: View {
                 case .loaded(let data):
                     ScrollView {
                         VStack(spacing: 12) {
-                            titleRow
                             profileHeader(data: data)
 
                             periodHeader
@@ -29,7 +31,7 @@ struct ProfileView: View {
                         .padding(.bottom, 24)
                     }
                     .refreshable {
-                        await viewModel.load()
+                        await viewModel.load(forceRefresh: true)
                     }
                 case .error(let error):
                     ContentUnavailableView {
@@ -137,7 +139,7 @@ struct ProfileView: View {
                 ForEach(ProfilePeriod.allCases) { period in
                     Button {
                         viewModel.selectedPeriod = period
-                        Task { await viewModel.load() }
+                        Task { await viewModel.load(forceRefresh: false) }
                     } label: {
                         Text(period.label)
                             .font(.system(size: 10, weight: .semibold))

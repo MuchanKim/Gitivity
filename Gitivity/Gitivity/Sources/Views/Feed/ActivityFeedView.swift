@@ -5,7 +5,28 @@ struct ActivityFeedView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
+            VStack(spacing: 0) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(StringLiterals.Feed.title)
+                        .font(AppTheme.Fonts.screenTitle)
+                        .tracking(-0.5)
+                        .foregroundStyle(AppTheme.Colors.textBright)
+
+                    RoundedRectangle(cornerRadius: 1)
+                        .fill(
+                            LinearGradient(
+                                colors: [AppTheme.Colors.primary, AppTheme.Colors.primaryLight],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: 32, height: 2)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .padding(.bottom, 20)
+
                 switch viewModel.feedState {
                 case .loading:
                     ScrollView {
@@ -20,28 +41,7 @@ struct ActivityFeedView: View {
                         )
                     } else {
                         ScrollView {
-                            VStack(alignment: .leading, spacing: 0) {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(StringLiterals.Feed.title)
-                                        .font(AppTheme.Fonts.screenTitle)
-                                        .tracking(-0.5)
-                                        .foregroundStyle(AppTheme.Colors.textBright)
-
-                                    RoundedRectangle(cornerRadius: 1)
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [AppTheme.Colors.primary, AppTheme.Colors.primaryLight],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-                                        .frame(width: 32, height: 2)
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.top, 16)
-                                .padding(.bottom, 20)
-
-                                LazyVStack(alignment: .leading, spacing: 0) {
+                            LazyVStack(alignment: .leading, spacing: 0) {
                                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                                         NavigationLink(value: item) {
                                             TimelineRepoCard(
@@ -57,10 +57,9 @@ struct ActivityFeedView: View {
                                     }
                                 }
                                 .padding(.horizontal, 20)
-                            }
                         }
                         .refreshable {
-                            await viewModel.loadFeed()
+                            await viewModel.loadFeed(forceRefresh: true)
                         }
                     }
                 case .error(let error):

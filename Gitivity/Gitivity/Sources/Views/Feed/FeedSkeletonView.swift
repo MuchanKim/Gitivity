@@ -3,20 +3,12 @@ import SwiftUI
 struct FeedSkeletonView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(StringLiterals.Feed.title)
-                .font(AppTheme.Fonts.screenTitle)
-                .foregroundStyle(.white)
-                .padding(.horizontal, 18)
-                .padding(.top, 6)
-                .padding(.bottom, 20)
-
-            VStack(alignment: .leading, spacing: 0) {
-                ForEach(0..<3, id: \.self) { index in
-                    skeletonCard(isLast: index == 2)
-                }
+            ForEach(0..<3, id: \.self) { index in
+                skeletonCard(isLast: index == 2)
             }
-            .padding(.horizontal, 18)
         }
+        .padding(.horizontal, 20)
+        .padding(.top, 4)
     }
 
     private func skeletonCard(isLast: Bool) -> some View {

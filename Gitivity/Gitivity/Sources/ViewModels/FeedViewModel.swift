@@ -13,12 +13,18 @@ final class FeedViewModel {
     private let groupingService = FeedGroupingService()
     private let promptBuilder = ActivityPromptBuilder()
     private let classifier = CommitClassifier(aiProvider: FoundationProvider())
+    private let cache = DataCacheService.shared
 
-    func loadFeed() async {
-        // Refresh: keep existing data visible
-        // Retry from error: keep error screen, show spinner on button
+    func loadFeed(forceRefresh: Bool = false) async {
+        // Check cache first
+        if !forceRefresh, let cached: [TimelineItem] = await cache.get(CacheKey.feedItems) {
+            feedState = .loaded(cached)
+            await restoreAIStatesFromCache(for: cached)
+            return
+        }
+
         if case .loaded = feedState {
-            // refresh path — don't reset to .loading
+            // refresh path
         } else if case .error = feedState {
             isRetrying = true
         } else {
@@ -47,16 +53,33 @@ final class FeedViewModel {
 
             isRetrying = false
             feedState = .loaded(items)
+            await cache.set(CacheKey.feedItems, value: items)
 
-            // Start AI enrichment independently
+            // Start AI enrichment — check cache per repo
             for item in items {
-                aiSummaryStates[item.repoFullName] = .loading
-                categoryStates[item.repoFullName] = .loading
+                let repoName = item.repoFullName
+                if let cached: String = await cache.get(CacheKey.aiSummary(repoName)) {
+                    aiSummaryStates[repoName] = .loaded(cached)
+                } else {
+                    aiSummaryStates[repoName] = .loading
+                }
+                if let cached: [CommitCategory: Int] = await cache.get(CacheKey.categoryDistribution(repoName)) {
+                    categoryStates[repoName] = .loaded(cached)
+                } else {
+                    categoryStates[repoName] = .loading
+                }
             }
-            await enrichWithAI(items)
+
+            let itemsNeedingAI = items.filter { item in
+                if case .loaded = aiSummaryStates[item.repoFullName] { return false }
+                return true
+            }
+
+            if !itemsNeedingAI.isEmpty {
+                await enrichWithAI(itemsNeedingAI)
+            }
         } catch {
             if let apiError = error as? GitHubAPIError, case .httpError(401) = apiError {
-                // Token expired — clear token so AuthViewModel detects it
                 try? KeychainService().delete(key: "github_token")
                 isRetrying = false
                 feedState = .error(error)
@@ -71,15 +94,27 @@ final class FeedViewModel {
         }
     }
 
+    private func restoreAIStatesFromCache(for items: [TimelineItem]) async {
+        for item in items {
+            let repoName = item.repoFullName
+            if let summary: String = await cache.get(CacheKey.aiSummary(repoName)) {
+                aiSummaryStates[repoName] = .loaded(summary)
+            }
+            if let dist: [CommitCategory: Int] = await cache.get(CacheKey.categoryDistribution(repoName)) {
+                categoryStates[repoName] = .loaded(dist)
+            }
+        }
+    }
+
     private func enrichWithAI(_ items: [TimelineItem]) async {
         let provider = FoundationProvider()
         let promptBuilder = self.promptBuilder
         let classifier = self.classifier
+        let cache = self.cache
 
         await withTaskGroup(of: (String, Result<String, Error>, [CommitCategory: Int]).self) { group in
             for item in items {
                 group.addTask {
-                    // Classify commits
                     let messages = item.commits.map(\.message)
                     let categories = await classifier.classifyBatch(messages)
                     var distribution: [CommitCategory: Int] = [:]
@@ -87,7 +122,6 @@ final class FeedViewModel {
                         distribution[category, default: 0] += 1
                     }
 
-                    // Generate AI summary
                     let prompt = promptBuilder.buildRepoSummaryPrompt(
                         repoName: item.repositoryName,
                         pullRequests: item.pullRequests,
@@ -95,6 +129,9 @@ final class FeedViewModel {
                     )
                     do {
                         let summary = try await provider.summarize(prompt: prompt)
+                        // Cache results
+                        await cache.set(CacheKey.aiSummary(item.repoFullName), value: summary)
+                        await cache.set(CacheKey.categoryDistribution(item.repoFullName), value: distribution)
                         return (item.repoFullName, .success(summary), distribution)
                     } catch {
                         AILogger.generation.error("[Feed] summary failed for \(item.repositoryName): \(error)")
