@@ -18,12 +18,12 @@ actor DataCacheService {
     // MARK: - Generic Cache Operations
 
     func get<T>(_ key: String) -> T? {
-        guard let entry = entries[key],
-              !entry.isStale(ttl: defaultTTL),
-              let value = entry.value as? T else {
+        guard let entry = entries[key] else { return nil }
+        if entry.isStale(ttl: defaultTTL) {
+            entries.removeValue(forKey: key)
             return nil
         }
-        return value
+        return entry.value as? T
     }
 
     func set(_ key: String, value: Any) {
@@ -53,9 +53,8 @@ enum CacheKey {
 
     // Profile
     static func profileData(_ periodDays: Int) -> String { "profile.data.\(periodDays)" }
-    static let profileBadges = "profile.badges"
+    static func profileBadges(_ periodDays: Int) -> String { "profile.badges.\(periodDays)" }
     static func profileCategories(_ periodDays: Int) -> String { "profile.categories.\(periodDays)" }
-    static let profileGridContributions = "profile.grid"
 
     // Repo Detail
     static func repoMetadata(_ repoName: String) -> String { "repo.metadata.\(repoName)" }
