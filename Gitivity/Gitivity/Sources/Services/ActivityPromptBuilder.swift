@@ -24,7 +24,7 @@ nonisolated struct ActivityPromptBuilder: Sendable {
         }
 
         parts.append("")
-        parts.append("위 GitHub 활동을 한국어 2~3문장으로 요약해주세요. 어떤 작업을 했는지 사람이 이해할 수 있게 설명해주세요.")
+        parts.append("위 GitHub 활동을 한국어 2~3문장으로 요약해주세요. 어떤 작업을 했는지 사람이 이해할 수 있게 설명해주세요. 마크다운 서식(**, *, #, - 등)은 사용하지 마세요. 순수 텍스트로만 답변하세요.")
 
         return parts.joined(separator: "\n")
     }
@@ -50,12 +50,12 @@ nonisolated struct ActivityPromptBuilder: Sendable {
         }
 
         parts.append("")
-        parts.append("이 PR이 무엇을 했는지 한국어 1~2문장으로 요약해주세요.")
+        parts.append("이 PR이 무엇을 했는지 한국어 1~2문장으로 요약해주세요. 마크다운 서식(**, *, #, - 등)은 사용하지 마세요. 순수 텍스트로만 답변하세요.")
 
         return parts.joined(separator: "\n")
     }
 
     func buildCommitTranslationPrompt(_ message: String) -> String {
-        "다음 git commit 메시지를 한국어로 번역해주세요. 개발자가 아닌 사람도 이해할 수 있게 자연스럽게 설명해주세요. 한 문장으로 답변해주세요.\n\nCommit: \(message)"
+        "다음 git commit 메시지를 한국어로 번역해주세요. 개발자가 아닌 사람도 이해할 수 있게 자연스럽게 설명해주세요. 한 문장으로, 마크다운 없이 순수 텍스트로 답변해주세요.\n\nCommit: \(message)"
     }
 }

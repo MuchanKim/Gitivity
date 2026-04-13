@@ -14,15 +14,19 @@ struct ProfileView: View {
                     }
                 case .loaded(let data):
                     ScrollView {
-                        VStack(spacing: 14) {
+                        VStack(spacing: 12) {
                             titleRow
                             profileHeader(data: data)
+
+                            sectionLabel("활동 요약")
                             contributionChart(data: data)
                             starsCard(data: data)
+
+                            sectionLabel("기여 히스토리")
                             ContributionGridView(contributions: data.contributions)
                         }
-                        .padding(.horizontal, 18)
-                        .padding(.bottom, 20)
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 24)
                     }
                     .refreshable {
                         await viewModel.load()
@@ -44,7 +48,7 @@ struct ProfileView: View {
                     }
                 }
             }
-            .background(AppTheme.Colors.background)
+            .background(AmbientBackground())
             .toolbar(.hidden, for: .navigationBar)
             .task {
                 await viewModel.load()
@@ -81,33 +85,56 @@ struct ProfileView: View {
                 )
                 .frame(width: 32, height: 2)
         }
-        .padding(.top, 14)
+        .padding(.top, 16)
     }
 
     private func profileHeader(data: ProfileData) -> some View {
-        VStack(spacing: 10) {
-            AsyncImage(url: URL(string: data.user.avatarURL)) { image in
-                image.resizable().scaledToFill()
-            } placeholder: {
-                Circle().fill(AppTheme.Colors.cardBackground)
-            }
-            .frame(width: 80, height: 80)
-            .clipShape(Circle())
-            .overlay(Circle().stroke(AppTheme.Colors.border, lineWidth: 3))
+        VStack(spacing: 12) {
+                AsyncImage(url: URL(string: data.user.avatarURL)) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    Circle().fill(AppTheme.Colors.cardBackground)
+                }
+                .frame(width: 80, height: 80)
+                .clipShape(Circle())
+                .overlay(
+                    Circle()
+                        .stroke(
+                            LinearGradient(
+                                colors: [AppTheme.Colors.primary, Color(hex: 0x3B82F6), Color(hex: 0xA78BFA)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 3
+                        )
+                )
+                .shadow(color: AppTheme.Colors.primary.opacity(0.15), radius: 20)
+                .shadow(color: Color(hex: 0x3B82F6).opacity(0.08), radius: 40)
 
-            VStack(spacing: 2) {
-                Text(data.user.name ?? data.user.login)
-                    .font(AppTheme.Fonts.profileName)
-                    .foregroundStyle(AppTheme.Colors.textBright)
-                Text("@\(data.user.login)")
-                    .font(AppTheme.Fonts.cardBody)
-                    .foregroundStyle(AppTheme.Colors.textTertiary)
-            }
+                VStack(spacing: 2) {
+                    Text(data.user.name ?? data.user.login)
+                        .font(AppTheme.Fonts.profileName)
+                        .foregroundStyle(AppTheme.Colors.textBright)
+                    Text("@\(data.user.login)")
+                        .font(AppTheme.Fonts.cardBody)
+                        .foregroundStyle(AppTheme.Colors.textTertiary)
+                }
 
-            BadgePillsView(badges: viewModel.badges)
+                BadgePillsView(badges: viewModel.badges)
+            }
+            .padding(.top, 20)
+            .padding(.bottom, 12)
+    }
+
+    private func sectionLabel(_ text: String) -> some View {
+        HStack {
+            Text(text)
+                .font(AppTheme.Fonts.sectionLabel)
+                .foregroundStyle(AppTheme.Colors.textMeta)
+                .tracking(0.8)
+            Spacer()
         }
-        .padding(.top, 8)
-        .padding(.bottom, 4)
+        .padding(.top, 4)
     }
 
     private func contributionChart(data: ProfileData) -> some View {

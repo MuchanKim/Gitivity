@@ -24,36 +24,39 @@ struct TimelineRepoCard: View {
 
     private var timelineDot: some View {
         VStack(spacing: 0) {
-            ZStack {
-                if isNewest {
-                    Circle()
-                        .fill(AppTheme.Colors.primary.opacity(0.2))
-                        .frame(width: 18, height: 18)
-                }
-                Circle()
-                    .fill(AppTheme.Colors.primary)
-                    .opacity(dotOpacity)
-                    .frame(width: isNewest ? 10 : 8, height: isNewest ? 10 : 8)
-                    .shadow(
-                        color: isToday
-                            ? AppTheme.Colors.primary.opacity(glowActive ? 0.8 : 0.3)
-                            : .clear,
-                        radius: isToday ? (glowActive ? 7 : 2) : 0
-                    )
-            }
-            .frame(width: 18, height: 18)
+            Circle()
+                .fill(AppTheme.Colors.primary.opacity(dotOpacity))
+                .frame(width: isNewest ? 8 : 6, height: isNewest ? 8 : 6)
+                .shadow(
+                    color: isToday
+                        ? AppTheme.Colors.primary.opacity(glowActive ? 0.8 : 0.4)
+                        : .clear,
+                    radius: isToday ? (glowActive ? 6 : 3) : 0
+                )
+                .opacity(isToday ? (glowActive ? 1.0 : 0.7) : 1.0)
+                .padding(.top, 5) // cardTitle(16px) baseline 정렬
             if !isLast {
                 Rectangle()
-                    .fill(AppTheme.Colors.border)
+                    .fill(
+                        LinearGradient(
+                            colors: isNewest
+                                ? [AppTheme.Colors.primary.opacity(0.15), AppTheme.Colors.border.opacity(0.4)]
+                                : [AppTheme.Colors.border.opacity(0.4), AppTheme.Colors.border.opacity(0.4)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
                     .frame(width: 2)
+                    .padding(.top, 4)
             }
+            Spacer(minLength: 0)
         }
         .frame(width: 18)
         .padding(.trailing, 4)
         .onAppear {
             if isToday {
                 withAnimation(
-                    .easeInOut(duration: isNewest ? 2.5 : 3.0)
+                    .easeInOut(duration: 2.5)
                     .repeatForever(autoreverses: true)
                 ) {
                     glowActive = true
@@ -92,15 +95,14 @@ struct TimelineRepoCard: View {
 
             statsRow
         }
-        .background(AppTheme.Colors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .background(AppTheme.CardStyle.backgroundGradient)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(
-                    AppTheme.Colors.primary.opacity(isNewest ? 0.08 : 0.02 + dotOpacity * 0.04),
-                    lineWidth: 1
-                )
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(AppTheme.CardStyle.borderGradient, lineWidth: 1)
         )
+        .shadow(color: .black.opacity(0.3), radius: isNewest ? 8 : 4, y: isNewest ? 4 : 2)
+        .shadow(color: .black.opacity(0.1), radius: 1, y: 1)
     }
 
     private var aiSummarySection: some View {
