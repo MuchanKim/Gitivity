@@ -42,8 +42,7 @@ final class ProfileViewModel {
         // Check cache first
         if !forceRefresh,
            let cachedData: ProfileData = await cache.get(CacheKey.profileData(periodDays)),
-           let cachedBadges: [DeveloperBadge] = await cache.get(CacheKey.profileBadges),
-           let _: [ContributionDay] = await cache.get(CacheKey.profileGridContributions) {
+           let cachedBadges: [DeveloperBadge] = await cache.get(CacheKey.profileBadges(periodDays)) {
             profileState = .loaded(cachedData)
             badges = cachedBadges
 
@@ -101,8 +100,7 @@ final class ProfileViewModel {
 
             // Cache profile data
             await cache.set(CacheKey.profileData(periodDays), value: data)
-            await cache.set(CacheKey.profileBadges, value: badges)
-            await cache.set(CacheKey.profileGridContributions, value: fetchedGrid)
+            await cache.set(CacheKey.profileBadges(periodDays), value: badges)
 
             // AI classification — check cache
             if let cachedCats: [CommitCategory: Int] = await cache.get(CacheKey.profileCategories(periodDays)) {

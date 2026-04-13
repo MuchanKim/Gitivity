@@ -10,6 +10,7 @@ final class RepoDetailViewModel {
     private(set) var itemAISummaries: [String: LoadingState<String>] = [:]
 
     private let promptBuilder = ActivityPromptBuilder()
+    private let provider = FoundationProvider()
     private let classifier = CommitClassifier(aiProvider: FoundationProvider())
     private let cache = DataCacheService.shared
 
@@ -20,7 +21,6 @@ final class RepoDetailViewModel {
             categoryDistribution = dist
         }
 
-        let provider = FoundationProvider()
         var items: [RepoDetailItem] = []
 
         // PR items
@@ -69,13 +69,13 @@ final class RepoDetailViewModel {
         detailState = .loaded(items.sorted { $0.timestamp > $1.timestamp })
 
         // Generate PR AI summaries — check cache first
-        await generatePRAISummaries(pullRequests: timelineItem.pullRequests, items: items, timelineItem: timelineItem, provider: provider)
+        await generatePRAISummaries(pullRequests: timelineItem.pullRequests, items: items, timelineItem: timelineItem)
     }
 
     private func classifyCommitsWithCache(_ commits: [Commit]) async -> [ClassifiedCommit] {
         await withTaskGroup(of: ClassifiedCommit.self) { group in
             for commit in commits {
-                group.addTask { [classifier, promptBuilder, cache] in
+                group.addTask { [classifier, promptBuilder, provider, cache] in
                     let category = await classifier.classify(commit.message)
 
                     // Check cache for translation
@@ -85,7 +85,7 @@ final class RepoDetailViewModel {
                     } else {
                         let prompt = promptBuilder.buildCommitTranslationPrompt(commit.message)
                         do {
-                            translation = try await FoundationProvider().summarize(prompt: prompt)
+                            translation = try await provider.summarize(prompt: prompt)
                             if let t = translation {
                                 await cache.set(CacheKey.commitTranslation(commit.id), value: t)
                             }
@@ -114,7 +114,7 @@ final class RepoDetailViewModel {
         }
     }
 
-    private func generatePRAISummaries(pullRequests: [PullRequest], items: [RepoDetailItem], timelineItem: TimelineItem, provider: FoundationProvider) async {
+    private func generatePRAISummaries(pullRequests: [PullRequest], items: [RepoDetailItem], timelineItem: TimelineItem) async {
         let prMap = Dictionary(uniqueKeysWithValues: pullRequests.map { ($0.id, $0) })
 
         await withTaskGroup(of: (String, Result<String, Error>).self) { group in
@@ -122,7 +122,7 @@ final class RepoDetailViewModel {
                 guard case .pullRequest = item.type else { continue }
 
                 // Check cache first
-                group.addTask { [promptBuilder, cache] in
+                group.addTask { [promptBuilder, provider, cache] in
                     if let cached: String = await cache.get(CacheKey.prAISummary(item.id)) {
                         return (item.id, .success(cached))
                     }
