@@ -20,9 +20,10 @@ enum AppTheme {
         static let deletions = Color(hex: 0xF87171)
         static let starGold = Color(hex: 0xFBBF24)
 
-        // Contribution type chart colors
-        static let chartPR = Color(hex: 0x34D399)
-        static let chartReview = Color(hex: 0xA78BFA)
+        // Contribution type chart colors (vivid)
+        static let chartCommit = Color(hex: 0x0EA5E9)
+        static let chartPR = Color(hex: 0x4ADE80)
+        static let chartReview = Color(hex: 0xC084FC)
         static let chartIssue = Color(hex: 0xFB923C)
     }
 

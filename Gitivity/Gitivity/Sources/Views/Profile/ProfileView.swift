@@ -18,9 +18,9 @@ struct ProfileView: View {
                             titleRow
                             profileHeader(data: data)
 
-                            sectionLabel("활동 요약")
+                            periodHeader
+                            streakStars(data: data)
                             contributionChart(data: data)
-                            starsCard(data: data)
 
                             sectionLabel("기여 히스토리")
                             ContributionGridView(contributions: data.contributions)
@@ -126,6 +126,42 @@ struct ProfileView: View {
             .padding(.bottom, 12)
     }
 
+    private var periodHeader: some View {
+        HStack {
+            Text("활동 요약")
+                .font(AppTheme.Fonts.sectionLabel)
+                .foregroundStyle(AppTheme.Colors.textMeta)
+                .tracking(0.8)
+            Spacer()
+            HStack(spacing: 4) {
+                ForEach(ProfilePeriod.allCases) { period in
+                    Button {
+                        viewModel.selectedPeriod = period
+                        Task { await viewModel.load() }
+                    } label: {
+                        Text(period.label)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(
+                                viewModel.selectedPeriod == period
+                                    ? AppTheme.Colors.textBright
+                                    : AppTheme.Colors.textMeta
+                            )
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                viewModel.selectedPeriod == period
+                                    ? Color.white.opacity(0.08)
+                                    : .clear
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .padding(.top, 4)
+    }
+
     private func sectionLabel(_ text: String) -> some View {
         HStack {
             Text(text)
@@ -137,22 +173,23 @@ struct ProfileView: View {
         .padding(.top, 4)
     }
 
+    private func streakStars(data: ProfileData) -> some View {
+        StreakStarsView(
+            streak: data.currentStreak,
+            bestStreak: data.currentStreak,
+            totalStars: data.totalStars,
+            topRepoName: data.topRepoName,
+            topRepoStars: data.topRepoStars
+        )
+    }
+
     private func contributionChart(data: ProfileData) -> some View {
         ContributionChartView(
             totalCommits: data.totalCommits,
             totalPRs: data.totalPRs,
             totalReviews: data.totalReviews,
             totalIssues: data.totalIssues,
-            categoryDistribution: viewModel.categoryDistribution,
-            streak: data.currentStreak
-        )
-    }
-
-    private func starsCard(data: ProfileData) -> some View {
-        StarsCardView(
-            totalStars: data.totalStars,
-            topRepoName: data.topRepoName,
-            topRepoStars: data.topRepoStars
+            categoryDistribution: viewModel.categoryDistribution
         )
     }
 }

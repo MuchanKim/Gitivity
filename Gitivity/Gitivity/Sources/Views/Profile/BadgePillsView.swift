@@ -34,27 +34,27 @@ struct BadgePillsView: View {
     }
 
     private func badgePill(_ badge: DeveloperBadge) -> some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 6) {
             Image(systemName: badge.type.systemImage)
-                .font(.system(size: 8, weight: .bold))
+                .font(.system(size: 10, weight: .bold))
                 .foregroundStyle(.white)
-                .frame(width: 18, height: 18)
+                .frame(width: 22, height: 22)
                 .background(
                     LinearGradient(colors: badge.type.gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 5))
+                .clipShape(RoundedRectangle(cornerRadius: 7))
 
             Text(badge.type.name)
-                .font(.system(size: 10, weight: .semibold))
+                .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(badge.type.accentColor)
         }
-        .padding(.vertical, 4)
-        .padding(.leading, 6)
-        .padding(.trailing, 10)
+        .padding(.vertical, 6)
+        .padding(.leading, 7)
+        .padding(.trailing, 12)
         .background(badge.type.accentColor.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .clipShape(RoundedRectangle(cornerRadius: 20))
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 20)
                 .strokeBorder(badge.type.accentColor.opacity(0.15), lineWidth: 1)
         )
     }
