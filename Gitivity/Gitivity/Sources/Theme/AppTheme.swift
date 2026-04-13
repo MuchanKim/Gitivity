@@ -47,6 +47,20 @@ enum AppTheme {
         static let level4 = Color(hex: 0x79B8FF)
     }
 
+    // MARK: - Rarity Colors
+    enum RarityColors {
+        static let rare = Color(hex: 0x60A5FA)
+        static let epic = Color(hex: 0xA78BFA)
+        static let legendary = Color(hex: 0xFFD700)
+    }
+
+    // MARK: - Streak Tier Colors
+    enum TierColors {
+        static let bronze = Color(hex: 0xCD7F32)
+        static let silver = Color(hex: 0xC0C0C0)
+        static let gold = Color(hex: 0xFFD700)
+    }
+
     // MARK: - Card Gradients
     enum CardStyle {
         static let backgroundGradient = LinearGradient(

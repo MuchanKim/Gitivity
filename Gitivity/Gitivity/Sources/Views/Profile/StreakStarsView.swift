@@ -16,11 +16,11 @@ struct StreakStarsView: View {
 
     private var streakTier: (name: String, color: Color, background: Color)? {
         if streak >= 30 {
-            return ("Gold", Color(hex: 0xFFD700), Color(hex: 0xFFD700).opacity(0.15))
+            return ("Gold", AppTheme.TierColors.gold, AppTheme.TierColors.gold.opacity(0.15))
         } else if streak >= 14 {
-            return ("Silver", Color(hex: 0xC0C0C0), Color(hex: 0xC0C0C0).opacity(0.15))
+            return ("Silver", AppTheme.TierColors.silver, AppTheme.TierColors.silver.opacity(0.15))
         } else if streak >= 7 {
-            return ("Bronze", Color(hex: 0xCD7F32), Color(hex: 0xCD7F32).opacity(0.15))
+            return ("Bronze", AppTheme.TierColors.bronze, AppTheme.TierColors.bronze.opacity(0.15))
         }
         return nil
     }

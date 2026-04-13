@@ -53,8 +53,8 @@ final class ProfileViewModel {
 
         do {
             let now = Date()
-            let statsStart = Calendar.current.date(byAdding: .day, value: -selectedPeriod.rawValue, to: now)!
-            let gridStart = Calendar.current.date(byAdding: .day, value: -180, to: now)!
+            let statsStart = Calendar.current.date(byAdding: .day, value: -selectedPeriod.rawValue, to: now) ?? now
+            let gridStart = Calendar.current.date(byAdding: .day, value: -180, to: now) ?? now
 
             async let viewer = api.fetchViewer()
             async let stats = api.fetchContributionStats(from: statsStart, to: now)
