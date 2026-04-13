@@ -34,10 +34,10 @@ final class ProfileViewModel {
 
         do {
             let now = Date()
-            let ninetyDaysAgo = Calendar.current.date(byAdding: .day, value: -90, to: now)!
+            let startDate = Calendar.current.date(byAdding: .day, value: -180, to: now)!
 
             async let viewer = api.fetchViewer()
-            async let stats = api.fetchContributionStats(from: ninetyDaysAgo, to: now)
+            async let stats = api.fetchContributionStats(from: startDate, to: now)
             async let stars = api.fetchTotalStars()
             async let commits = api.fetchCommits(limit: 100)
 

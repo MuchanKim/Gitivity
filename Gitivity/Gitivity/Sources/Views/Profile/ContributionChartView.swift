@@ -15,13 +15,7 @@ struct ContributionChartView: View {
             tabPicker
             chartContent
         }
-        .padding(16)
-        .background(AppTheme.Colors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(AppTheme.Colors.border, lineWidth: 1)
-        )
+        .cardStyle(isPrimary: true)
     }
 
     private var tabPicker: some View {
@@ -30,7 +24,7 @@ struct ContributionChartView: View {
             tabButton(title: "커밋 분류", index: 1)
         }
         .padding(2)
-        .background(AppTheme.Colors.aiCardBackground)
+        .background(Color.white.opacity(0.04))
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
@@ -43,7 +37,7 @@ struct ContributionChartView: View {
                 .foregroundStyle(selectedTab == index ? AppTheme.Colors.textPrimary : AppTheme.Colors.textMeta)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 6)
-                .background(selectedTab == index ? AppTheme.Colors.cardBackground : .clear)
+                .background(selectedTab == index ? Color.white.opacity(0.08) : .clear)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
         }
         .buttonStyle(.plain)

@@ -39,15 +39,31 @@ enum AppTheme {
 
     // MARK: - Contribution Grass Colors
     enum GrassColors {
-        static let level0 = Color(hex: 0x131F2E)
-        static let level1 = Color(hex: 0x0C2D48)
-        static let level2 = Color(hex: 0x1E5F8A)
+        static let level0 = Color(hex: 0x21262D)
+        static let level1 = Color(hex: 0x0A3069)
+        static let level2 = Color(hex: 0x1158C7)
         static let level3 = Color(hex: 0x3B82F6)
-        static let level4 = Color(hex: 0x60A5FA)
+        static let level4 = Color(hex: 0x79B8FF)
+    }
+
+    // MARK: - Card Gradients
+    enum CardStyle {
+        static let backgroundGradient = LinearGradient(
+            colors: [Color(hex: 0x111D2E), Color(hex: 0x0D1825)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        static let borderGradient = LinearGradient(
+            colors: [Color.white.opacity(0.1), Color.white.opacity(0.02), Color.white.opacity(0.0)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 
     // MARK: - Typography
     enum Fonts {
+        // Section
+        static let sectionLabel = Font.system(size: 11, weight: .semibold)
         // Display
         static let screenTitle = Font.system(size: 28, weight: .black)
         static let pageTitle = Font.system(size: 24, weight: .heavy)

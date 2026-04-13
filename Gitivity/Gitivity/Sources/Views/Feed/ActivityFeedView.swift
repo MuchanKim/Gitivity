@@ -37,9 +37,9 @@ struct ActivityFeedView: View {
                                         )
                                         .frame(width: 32, height: 2)
                                 }
-                                .padding(.horizontal, 18)
-                                .padding(.top, 18)
-                                .padding(.bottom, 22)
+                                .padding(.horizontal, 20)
+                                .padding(.top, 16)
+                                .padding(.bottom, 20)
 
                                 LazyVStack(alignment: .leading, spacing: 0) {
                                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
@@ -56,7 +56,7 @@ struct ActivityFeedView: View {
                                         .buttonStyle(.plain)
                                     }
                                 }
-                                .padding(.horizontal, 18)
+                                .padding(.horizontal, 20)
                             }
                         }
                         .refreshable {
@@ -80,7 +80,7 @@ struct ActivityFeedView: View {
                     }
                 }
             }
-            .background(AppTheme.Colors.background)
+            .background(AmbientBackground())
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: TimelineItem.self) { item in
                 RepoDetailView(

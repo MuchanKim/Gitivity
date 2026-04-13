@@ -8,11 +8,22 @@ struct StarsCardView: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "star.fill")
-                .font(.system(size: 18))
+                .font(.system(size: 20))
                 .foregroundStyle(AppTheme.Colors.starGold)
-                .frame(width: 36, height: 36)
-                .background(AppTheme.Colors.aiCardBackground)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .frame(width: 40, height: 40)
+                .background(
+                    LinearGradient(
+                        colors: [AppTheme.Colors.starGold.opacity(0.12), AppTheme.Colors.starGold.opacity(0.04)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(AppTheme.Colors.starGold.opacity(0.12), lineWidth: 1)
+                )
+                .shadow(color: AppTheme.Colors.starGold.opacity(0.06), radius: 12)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("총 스타")
@@ -40,12 +51,6 @@ struct StarsCardView: View {
                 }
             }
         }
-        .padding(14)
-        .background(AppTheme.Colors.cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(AppTheme.Colors.border, lineWidth: 1)
-        )
+        .cardStyle()
     }
 }
