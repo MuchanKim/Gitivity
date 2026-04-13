@@ -6,7 +6,10 @@ struct ContributionChartView: View {
     let totalReviews: Int
     let totalIssues: Int
     let categoryDistribution: [CommitCategory: Int]
-    let streak: Int
+
+    private var totalContributions: Int {
+        totalCommits + totalPRs + totalReviews + totalIssues
+    }
 
     @State private var selectedTab = 0
 
@@ -56,14 +59,14 @@ struct ContributionChartView: View {
         HStack(spacing: 16) {
             donutChart(
                 segments: [
-                    (Double(totalCommits), AppTheme.Colors.primary),
+                    (Double(totalCommits), AppTheme.Colors.chartCommit),
                     (Double(totalPRs), AppTheme.Colors.chartPR),
                     (Double(totalReviews), AppTheme.Colors.chartReview),
                     (Double(totalIssues), AppTheme.Colors.chartIssue),
                 ]
             )
             VStack(alignment: .leading, spacing: 8) {
-                legendRow(color: AppTheme.Colors.primary, label: "커밋", value: totalCommits)
+                legendRow(color: AppTheme.Colors.chartCommit, label: "커밋", value: totalCommits)
                 legendRow(color: AppTheme.Colors.chartPR, label: "PR", value: totalPRs)
                 legendRow(color: AppTheme.Colors.chartReview, label: "리뷰", value: totalReviews)
                 legendRow(color: AppTheme.Colors.chartIssue, label: "이슈", value: totalIssues)
@@ -105,10 +108,10 @@ struct ContributionChartView: View {
             }
 
             VStack(spacing: 0) {
-                Text("\(streak)")
-                    .font(.system(size: 18, weight: .black))
-                    .foregroundStyle(AppTheme.Colors.primary)
-                Text("일 연속")
+                Text("\(totalContributions)")
+                    .font(.system(size: 22, weight: .black))
+                    .foregroundStyle(AppTheme.Colors.textBright)
+                Text("총 기여")
                     .font(.system(size: 8))
                     .foregroundStyle(AppTheme.Colors.textMeta)
             }

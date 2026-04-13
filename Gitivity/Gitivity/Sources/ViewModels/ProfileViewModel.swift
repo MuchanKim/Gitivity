@@ -1,5 +1,23 @@
 import Foundation
 
+enum ProfilePeriod: Int, CaseIterable, Identifiable {
+    case oneMonth = 30
+    case threeMonths = 90
+    case sixMonths = 180
+    case oneYear = 365
+
+    var id: Int { rawValue }
+
+    var label: String {
+        switch self {
+        case .oneMonth: "1개월"
+        case .threeMonths: "3개월"
+        case .sixMonths: "6개월"
+        case .oneYear: "1년"
+        }
+    }
+}
+
 @MainActor
 @Observable
 final class ProfileViewModel {
@@ -7,6 +25,7 @@ final class ProfileViewModel {
     private(set) var categoryState: LoadingState<[CommitCategory: Int]> = .loading
     private(set) var badges: [DeveloperBadge] = []
     private(set) var isRetrying = false
+    var selectedPeriod: ProfilePeriod = .sixMonths
 
     private let keychain = KeychainService()
     private let classifier = CommitClassifier(aiProvider: FoundationProvider())
@@ -34,18 +53,20 @@ final class ProfileViewModel {
 
         do {
             let now = Date()
-            let startDate = Calendar.current.date(byAdding: .day, value: -180, to: now)!
+            let statsStart = Calendar.current.date(byAdding: .day, value: -selectedPeriod.rawValue, to: now)!
+            let gridStart = Calendar.current.date(byAdding: .day, value: -180, to: now)!
 
             async let viewer = api.fetchViewer()
-            async let stats = api.fetchContributionStats(from: startDate, to: now)
+            async let stats = api.fetchContributionStats(from: statsStart, to: now)
+            async let gridContributions = api.fetchContributions(from: gridStart, to: now)
             async let stars = api.fetchTotalStars()
             async let commits = api.fetchCommits(limit: 100)
 
-            let (fetchedUser, fetchedStats, fetchedStars, fetchedCommits) = try await (viewer, stats, stars, commits)
+            let (fetchedUser, fetchedStats, fetchedGrid, fetchedStars, fetchedCommits) = try await (viewer, stats, gridContributions, stars, commits)
 
             let data = ProfileData(
                 user: fetchedUser,
-                contributions: fetchedStats.contributions,
+                contributions: fetchedGrid,
                 totalCommits: fetchedStats.totalCommits,
                 totalPRs: fetchedStats.totalPRs,
                 totalReviews: fetchedStats.totalReviews,
@@ -55,7 +76,7 @@ final class ProfileViewModel {
                 topRepoName: fetchedStars.topRepoName,
                 topRepoStars: fetchedStars.topRepoStars,
                 commits: fetchedCommits,
-                currentStreak: ProfileData.calculateStreak(from: fetchedStats.contributions)
+                currentStreak: ProfileData.calculateStreak(from: fetchedGrid)
             )
             isRetrying = false
             profileState = .loaded(data)

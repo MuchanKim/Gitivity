@@ -1,5 +1,9 @@
 import SwiftUI
 
+enum BadgeRarity: String, Sendable {
+    case common, rare, epic, legendary
+}
+
 enum DeveloperBadgeType: String, CaseIterable, Identifiable {
     case nightOwl
     case earlyBird
@@ -71,6 +75,15 @@ enum DeveloperBadgeType: String, CaseIterable, Identifiable {
 
     var accentColor: Color {
         gradient[0]
+    }
+
+    var rarity: BadgeRarity {
+        switch self {
+        case .earlyBird, .refactorer: .common
+        case .nightOwl, .stormCoder, .weekendWarrior, .multiPlayer: .rare
+        case .builder, .prMaster: .epic
+        case .consistencyKing: .legendary
+        }
     }
 }
 
